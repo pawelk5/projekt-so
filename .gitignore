@@ -1,0 +1,8 @@
+build/
+.cache/
+
+#IDE
+.vs
+.vscode
+.fleet
+.idea
