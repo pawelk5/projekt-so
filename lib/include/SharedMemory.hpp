@@ -1,5 +1,5 @@
 #pragma once
-#include <stdio.h>
+#include <string>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -15,7 +15,7 @@ public:
     };
 
 public:
-    SharedMemory(const char* shmPath, int shmKey) 
+    SharedMemory(const std::string& shmPath, int shmKey) 
         :m_isOwner(true)
     {
         pCreateSharedMemory(shmPath, shmKey);
@@ -59,11 +59,11 @@ private:
         m_memPtr = nullptr;
     }
 
-    void pCreateSharedMemory(const char* shmPath, int shmKey) {
+    void pCreateSharedMemory(const std::string& shmPath, int shmKey) {
         if (!CreateEmptyFile(shmPath))
             return;
 
-        m_memData.Key = ftok(shmPath, shmKey);
+        m_memData.Key = ftok(shmPath.c_str(), shmKey);
         m_memData.ID = shmget(m_memData.Key, sizeof(T), IPC_CREAT | IPC_EXCL | 0666);
     }
 };
