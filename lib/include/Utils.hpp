@@ -1,3 +1,4 @@
 #pragma once
+#include <string>
 
-bool CreateEmptyFile(const char* filepath);
+bool CreateEmptyFile(const std::string& filepath);
