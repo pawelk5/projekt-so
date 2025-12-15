@@ -1,6 +1,6 @@
 add_subdirectory("main")
 # add_subdirectory("service")
-# add_subdirectory("manager")
+add_subdirectory("manager")
 # add_subdirectory("client")
 # add_subdirectory("cashier")
 # add_subdirectory("restaurant")

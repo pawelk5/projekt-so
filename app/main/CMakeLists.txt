@@ -1,5 +1,5 @@
 # local
-set(EXEC_NAME "${PROJECT_NAME}-main")
+set(EXEC_NAME "park-main")
 set(LIBRARY_INCLUDE_PATH "${CMAKE_CURRENT_LIST_DIR}/include")
 
 add_executable(${EXEC_NAME}
