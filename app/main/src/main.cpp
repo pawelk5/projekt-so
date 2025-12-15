@@ -1,5 +1,7 @@
+#include <cstddef>
 #include <iostream>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 #include "SharedMemory.hpp"
 #include "SimulationData.hpp"
@@ -10,10 +12,18 @@ const int SHARED_MEMORY_KEY = 'A';
 int main() {
     
     SharedMemory<SimulationData> sharedMemory = 
-        SharedMemory<SimulationData>(SHARED_MEMORY_PATH, SHARED_MEMORY_KEY);
+        SharedMemory<SimulationData>(SHARED_MEMORY_PATH, SHARED_MEMORY_KEY, true);
 
-    std::cout << sharedMemory.GetData() << std::endl;
+    std::cout << sharedMemory.GetData()->managerPID << std::endl;
+    if (fork() != 0)
+        execl("./park-manager", "park-manager", NULL);
 
-    sleep(10);
+    sleep(4);
+    std::cout << sharedMemory.GetData()->managerPID << std::endl;
+
+    sleep(4);
+    std::cout << sharedMemory.GetData()->managerPID << std::endl;
+
+    while(wait(NULL) > 0);
     return 0;
 }
