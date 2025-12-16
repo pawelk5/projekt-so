@@ -19,11 +19,18 @@ public:
     };
 
 public:
-    SharedMemory(const std::string& shmPath, int shmKey, bool create = false) 
-        :m_memPtr(nullptr), m_memData(0, 0)
+    SharedMemory() 
+        :m_memPtr(nullptr), m_memData(0, 0), m_isOwner(false)
     {
-        pCreateSharedMemory(shmPath, shmKey, create);
-        pAttachMemory();
+
+    }
+
+    bool AttachMemory(const std::string& shmPath, int shmKey, bool create = false) {
+        return pAttachMemory(shmPath, shmKey, create);
+    }
+    
+    bool DetachMemory() {
+        return pDetachMemory();
     }
 
     ~SharedMemory() {
@@ -35,15 +42,9 @@ public:
     }
 
 private:
-    void pAttachMemory() {
-        pDetachMemory();
-
-        m_memPtr = (T*) shmat(m_memData.ID, nullptr, IPC_CREAT | 0666);
-    }
-
-    void pDetachMemory() {
+    bool pDetachMemory() {
         if (!m_memPtr)
-            return;
+            return true;
 
         int result = shmdt((void* const) m_memPtr);
         // todo: check for errors
@@ -52,6 +53,9 @@ private:
         // if the object created shared memory then it will automatically remove it when it detaches it
         if (m_isOwner)
             pDeleteMemory();
+        
+        m_memData = { 0, 0 };
+        return true;
     }
 
     void pDeleteMemory() {
@@ -63,16 +67,20 @@ private:
         m_memPtr = nullptr;
     }
 
-    void pCreateSharedMemory(const std::string& shmPath, int shmKey, bool create) {
+    bool pAttachMemory(const std::string& shmPath, int shmKey, bool create) {
+        if (!CreateEmptyFile(shmPath))
+            return false;
+
         if (!m_memData.isEmpty())
             pDetachMemory();
-
-        if (!CreateEmptyFile(shmPath))
-            return;
 
         m_memData.Key = ftok(shmPath.c_str(), shmKey);
         m_memData.ID = shmget(m_memData.Key, sizeof(T), IPC_CREAT | (IPC_EXCL && create) | 0666);
         m_isOwner = create;
+
+        // attach pointer
+        m_memPtr = (T*)shmat(m_memData.ID, nullptr, IPC_CREAT | 0666);
+        return true;
     }
 
 private:

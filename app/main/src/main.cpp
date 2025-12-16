@@ -11,19 +11,18 @@ const int SHARED_MEMORY_KEY = 'A';
 
 int main() {
     
-    SharedMemory<SimulationData> sharedMemory = 
-        SharedMemory<SimulationData>(SHARED_MEMORY_PATH, SHARED_MEMORY_KEY, true);
+    SharedMemory<SimulationData> sharedMemory; 
+    sharedMemory.AttachMemory(SHARED_MEMORY_PATH, SHARED_MEMORY_KEY, true);
 
     std::cout << sharedMemory.GetData()->managerPID << std::endl;
-    if (fork() != 0)
+    if (fork() == 0)
         execl("./park-manager", "park-manager", NULL);
 
     sleep(4);
     std::cout << sharedMemory.GetData()->managerPID << std::endl;
-
-    sleep(4);
+    
+    while(wait(NULL) > 0);
     std::cout << sharedMemory.GetData()->managerPID << std::endl;
 
-    while(wait(NULL) > 0);
     return 0;
 }

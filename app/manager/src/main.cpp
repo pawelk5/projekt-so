@@ -8,8 +8,11 @@ const char* SHARED_MEMORY_PATH = "/tmp/park_rozrywki_main";
 const int SHARED_MEMORY_KEY = 'A';
 
 int main() {
-    SharedMemory<SimulationData> sharedMemory = 
-        SharedMemory<SimulationData>(SHARED_MEMORY_PATH, SHARED_MEMORY_KEY);
+    SharedMemory<SimulationData> sharedMemory; 
+    sharedMemory.AttachMemory(SHARED_MEMORY_PATH, SHARED_MEMORY_KEY);
+        
+    if (sharedMemory.GetData()->managerPID != 0)
+        return -1;
 
     sharedMemory.GetData()->managerPID = getpid();
     sleep(6);
