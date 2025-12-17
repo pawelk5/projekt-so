@@ -5,6 +5,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include "SemaphoreArray.hpp"
+#include "SemaphoreLock.hpp"
 #include "Utils.hpp"
 
 // TODO: error detection
@@ -34,6 +35,7 @@ public:
     
     bool DetachMemory() { return pDetachMemory(); }
 
+    SemaphoreLock GetSemLock() { return SemaphoreLock(m_sem); }
     SemaphoreArray::Semaphore GetSemaphore() { return m_sem; }
     T* const GetData() { return m_memPtr; }
 
