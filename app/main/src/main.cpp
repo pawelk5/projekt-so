@@ -16,20 +16,29 @@ int main() {
     if (fork() == 0)
         execl("./park-manager", "park-manager", NULL);
 
-    std::cout << "main wait" << std::endl;
-    sharedMemory.GetSemaphore()->Wait();
-    sleep(3);
-    std::cout << sharedMemory.GetData()->managerPID << std::endl;
-    std::cout << "main signal" << std::endl;
-    sharedMemory.GetSemaphore()->Signal();
+    {
+        auto t_semlock = sharedMemory.GetSemLock();
+        std::cout << "main semlock" << std::endl;
 
-    std::cout << "main wait" << std::endl;
-    sharedMemory.GetSemaphore()->Wait();
-    std::cout << sharedMemory.GetData()->managerPID << std::endl;
-    std::cout << "main signal" << std::endl;
-    sharedMemory.GetSemaphore()->Signal();
+        sleep(3);
+        std::cout << sharedMemory.GetData()->managerPID << std::endl;
+    }
+    
+    {
+        auto t_semlock = sharedMemory.GetSemLock();
+        std::cout << "main semlock" << std::endl;
+
+        std::cout << sharedMemory.GetData()->managerPID << std::endl;
+    }
 
     while(wait(NULL) > 0);
+
+    {
+        auto t_semlock = sharedMemory.GetSemLock();
+        std::cout << "main semlock" << std::endl;
+
+        std::cout << sharedMemory.GetData()->managerPID << std::endl;
+    }
     
     return 0;
 }

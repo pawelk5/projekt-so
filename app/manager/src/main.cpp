@@ -16,15 +16,20 @@ int main() {
     if (sharedMemory.GetData()->managerPID != 0)
         return -1;
 
-    std::cout << "manager wait" << std::endl;
-    sharedMemory.GetSemaphore()->Wait();
-    sharedMemory.GetData()->managerPID = getpid();
-    std::cout << "manager signal" << std::endl;
-    sharedMemory.GetSemaphore()->Signal();
+    {
+        auto t_semlock = sharedMemory.GetSemLock();
+
+        std::cout << "manager semlock" << std::endl;
+        sharedMemory.GetData()->managerPID = getpid();
+    }
 
     sleep(1);
-    sharedMemory.GetSemaphore()->Wait();
-    sharedMemory.GetData()->managerPID = 0;
-    sharedMemory.GetSemaphore()->Signal();
+    {
+        auto t_semlock = sharedMemory.GetSemLock();
+        std::cout << "manager semlock" << std::endl;
+        
+        sharedMemory.GetData()->managerPID = 0;
+    }
+
     return 0;
 }
