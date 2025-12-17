@@ -1,28 +1,35 @@
 #include <cstddef>
 #include <iostream>
-#include <sys/types.h>
 #include <sys/wait.h>
-#include <unistd.h>
 #include "SharedMemory.hpp"
 #include "SimulationData.hpp"
 
-const char* SHARED_MEMORY_PATH = "/tmp/park_rozrywki_main";
-const int SHARED_MEMORY_KEY = 'A';
-
 int main() {
+    SemaphoreArray semaphoreArray;
+    semaphoreArray.GetSemaphoreArray(MAIN_SEMAPHORE_ARRAY_PATH, MAIN_SEMAPHORE_ARRAY_KEY,
+        1, true);
     
     SharedMemory<SimulationData> sharedMemory; 
-    sharedMemory.AttachMemory(SHARED_MEMORY_PATH, SHARED_MEMORY_KEY, true);
+    sharedMemory.AttachMemory(SHARED_MEMORY_PATH, SHARED_MEMORY_KEY,
+        semaphoreArray.GetSemaphore(0), true);
 
-    std::cout << sharedMemory.GetData()->managerPID << std::endl;
     if (fork() == 0)
         execl("./park-manager", "park-manager", NULL);
 
-    sleep(4);
+    std::cout << "main wait" << std::endl;
+    sharedMemory.GetSemaphore()->Wait();
+    sleep(3);
     std::cout << sharedMemory.GetData()->managerPID << std::endl;
-    
-    while(wait(NULL) > 0);
-    std::cout << sharedMemory.GetData()->managerPID << std::endl;
+    std::cout << "main signal" << std::endl;
+    sharedMemory.GetSemaphore()->Signal();
 
+    std::cout << "main wait" << std::endl;
+    sharedMemory.GetSemaphore()->Wait();
+    std::cout << sharedMemory.GetData()->managerPID << std::endl;
+    std::cout << "main signal" << std::endl;
+    sharedMemory.GetSemaphore()->Signal();
+
+    while(wait(NULL) > 0);
+    
     return 0;
 }

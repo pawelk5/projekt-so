@@ -1,8 +1,10 @@
 #pragma once
 #include <string>
+#include <iostream>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include "SemaphoreArray.hpp"
 #include "Utils.hpp"
 
 // TODO: error detection
@@ -24,22 +26,16 @@ public:
     {
 
     }
+    ~SharedMemory() { pDetachMemory(); }
 
-    bool AttachMemory(const std::string& shmPath, int shmKey, bool create = false) {
-        return pAttachMemory(shmPath, shmKey, create);
+    bool AttachMemory(const std::string& shmPath, int shmKey, SemaphoreArray::Semaphore shmSemaphore = nullptr, bool create = false) {
+        return pAttachMemory(shmPath, shmKey, shmSemaphore, create);
     }
     
-    bool DetachMemory() {
-        return pDetachMemory();
-    }
+    bool DetachMemory() { return pDetachMemory(); }
 
-    ~SharedMemory() {
-        pDetachMemory();
-    }
-
-    T* const GetData() {
-        return m_memPtr;
-    }
+    SemaphoreArray::Semaphore GetSemaphore() { return m_sem; }
+    T* const GetData() { return m_memPtr; }
 
 private:
     bool pDetachMemory() {
@@ -67,9 +63,10 @@ private:
         m_memPtr = nullptr;
     }
 
-    bool pAttachMemory(const std::string& shmPath, int shmKey, bool create) {
-        if (!CreateEmptyFile(shmPath))
-            return false;
+    bool pAttachMemory(const std::string& shmPath, int shmKey, SemaphoreArray::Semaphore shmSemaphore, bool create) {
+        if (create)
+            if (!CreateEmptyFile(shmPath))
+                return false;
 
         if (!m_memData.isEmpty())
             pDetachMemory();
@@ -80,6 +77,10 @@ private:
 
         // attach pointer
         m_memPtr = (T*)shmat(m_memData.ID, nullptr, IPC_CREAT | 0666);
+        m_sem = shmSemaphore;
+        if (m_isOwner)
+            m_sem->SetValue(1);
+        
         return true;
     }
 
@@ -87,4 +88,6 @@ private:
     T* m_memPtr;
     SharedMemoryData m_memData;
     bool m_isOwner;
+
+    SemaphoreArray::Semaphore m_sem;
 };

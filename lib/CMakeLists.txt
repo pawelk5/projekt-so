@@ -9,6 +9,8 @@ set(LIBRARY_INCLUDE_PATH "${LIBRARY_INCLUDE_PATH}" PARENT_SCOPE)
 
 add_library(${STATIC_LIBRARY} STATIC
     "src/Utils.cpp"
+    "src/SemaphoreArray.cpp"
+    "src/Semaphore.cpp"
 )
 
 target_compile_features(${STATIC_LIBRARY} PRIVATE cxx_std_20)

@@ -2,6 +2,12 @@
 #include <array>
 #include <sys/types.h>
 
+#define SHARED_MEMORY_PATH "/tmp/park_rozrywki_shm_main"
+#define SHARED_MEMORY_KEY 'A'
+
+#define MAIN_SEMAPHORE_ARRAY_PATH "/tmp/park_rozrywki_sem_main"
+#define MAIN_SEMAPHORE_ARRAY_KEY 'B'
+
 struct SimulationData {
     key_t sharedMemoryKey = 0;
     __pid_t managerPID = 0;
