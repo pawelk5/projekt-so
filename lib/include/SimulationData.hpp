@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <cstdint>
 #include <sys/types.h>
 
 #define SHARED_MEMORY_PATH "/tmp/park_rozrywki_shm_main"
@@ -7,6 +8,11 @@
 
 #define MAIN_SEMAPHORE_ARRAY_PATH "/tmp/park_rozrywki_sem_main"
 #define MAIN_SEMAPHORE_ARRAY_KEY 'B'
+
+enum class MainSemaphoreArray : uint16_t {
+    MainSharedMemorySemaphore,
+    Count
+};
 
 struct SimulationData {
     key_t sharedMemoryKey = 0;

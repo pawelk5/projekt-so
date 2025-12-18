@@ -5,13 +5,19 @@
 
 struct SemaphoreLock {
     SemaphoreLock(SemaphoreArray::Semaphore& sem, uint16_t val = 1)
-        :m_sem(sem), m_val(val)
+        :m_sem(sem), m_val(val), m_released(false)
     {
         m_sem->Wait(m_val);
     }
 
     ~SemaphoreLock() {
-        m_sem->Signal(m_val);
+        Release();
+    }
+
+    void Release() {
+        if (!m_released)
+            m_sem->Signal(m_val);
+        m_released = true;
     }
 
     SemaphoreLock(const SemaphoreLock&) = delete;
@@ -19,4 +25,6 @@ struct SemaphoreLock {
 private:
     SemaphoreArray::Semaphore& m_sem;
     uint16_t m_val;
+
+    bool m_released;
 };
