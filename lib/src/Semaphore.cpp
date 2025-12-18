@@ -1,5 +1,4 @@
 #include "SemaphoreArray.hpp"
-#include <iostream>
 
 SemaphoreArray::SemaphoreStruct::SemaphoreStruct(SemaphoreArray& semArray, int semID) 
     :m_semArray(semArray), m_semID(semID)

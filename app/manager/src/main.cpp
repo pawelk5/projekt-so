@@ -15,13 +15,12 @@ int main() {
         semaphoreArray.GetSemaphore((uint16_t)MainSemaphoreArray::MainSharedMemorySemaphore));
     
     {
-        auto t_semlock = sharedMemory.GetSemLock();
-        if (sharedMemory.GetData()->managerPID != 0) {
-            t_semlock.Release();
-            return -1;
-        }
+        sharedMemory.WithSemLock([&sharedMemory]() {
+            if (sharedMemory.GetData()->managerPID != 0)
+                throw std::runtime_error("manager already exists!");
 
-        sharedMemory.GetData()->managerPID = getpid();
+            sharedMemory.GetData()->managerPID = getpid();
+        });
     }
 
     sleep(1);

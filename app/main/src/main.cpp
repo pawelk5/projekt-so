@@ -16,7 +16,7 @@ int main() {
 
     if (fork() == 0)
         execl("./park-manager", "park-manager", NULL);
-    
+
     if (fork() == 0)
         execl("./park-manager", "park-manager", NULL);
     {
@@ -34,7 +34,7 @@ int main() {
         std::cout << sharedMemory.GetData()->managerPID << std::endl;
     }
 
-    while(wait(NULL) > 0);
+    while(wait(NULL) > 0) { ; }
 
     {
         auto t_semlock = sharedMemory.GetSemLock();
