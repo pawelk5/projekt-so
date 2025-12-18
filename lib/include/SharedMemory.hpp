@@ -1,6 +1,6 @@
 #pragma once
+#include <exception>
 #include <string>
-#include <iostream>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -36,6 +36,21 @@ public:
     bool DetachMemory() { return pDetachMemory(); }
 
     SemaphoreLock GetSemLock() { return SemaphoreLock(m_sem); }
+
+    // Exception-safe semlock
+    template<class Callable>
+    void WithSemLock(Callable function) {
+        auto t_semlock = GetSemLock();
+
+        try {
+            function();
+        }
+        catch (std::exception e) {
+            t_semlock.Release();
+            throw e;
+        }
+    }
+
     SemaphoreArray::Semaphore GetSemaphore() { return m_sem; }
     T* const GetData() { return m_memPtr; }
 

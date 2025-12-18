@@ -5,7 +5,6 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <sys/types.h>
-#include <iostream>
 
 SemaphoreArray::SemaphoreArray() 
     :m_isOwner(false), m_semData(0, 0)
