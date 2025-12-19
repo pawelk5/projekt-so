@@ -1,47 +1,19 @@
-#include <cstddef>
+#include "MainProc/MainProc.hpp"
 #include <iostream>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include "SharedMemory.hpp"
-#include "SimulationData.hpp"
 
 int main() {
-    SemaphoreArray semaphoreArray;
-    semaphoreArray.GetSemaphoreArray(MAIN_SEMAPHORE_ARRAY_PATH, MAIN_SEMAPHORE_ARRAY_KEY,
-        (uint16_t)MainSemaphoreArray::Count, true);
-    
-    SharedMemory<SimulationData> sharedMemory; 
-    sharedMemory.AttachMemory(SHARED_MEMORY_PATH, SHARED_MEMORY_KEY,
-        semaphoreArray.GetSemaphore((uint16_t)MainSemaphoreArray::MainSharedMemorySemaphore), true);
+    try {
+        MainProc::Get().Init(true);
+        MainProc::Get().Run();
+    } catch (std::exception e) {
+        perror(e.what());
+    } 
 
-    if (fork() == 0)
-        execl("./park-manager", "park-manager", NULL);
-
-    if (fork() == 0)
-        execl("./park-manager", "park-manager", NULL);
-    {
-        auto t_semlock = sharedMemory.GetSemLock();
-        std::cout << "main semlock" << std::endl;
-
-        sleep(3);
-        std::cout << sharedMemory.GetData()->managerPID << std::endl;
+    try {
+        MainProc::Get().Close();
+    } catch (std::exception e) {
+        std::cerr << e.what() << std::endl;
+        return -1;
     }
-    
-    {
-        auto t_semlock = sharedMemory.GetSemLock();
-        std::cout << "main semlock" << std::endl;
-
-        std::cout << sharedMemory.GetData()->managerPID << std::endl;
-    }
-
-    while(wait(NULL) > 0) { ; }
-
-    {
-        auto t_semlock = sharedMemory.GetSemLock();
-        std::cout << "main semlock" << std::endl;
-
-        std::cout << sharedMemory.GetData()->managerPID << std::endl;
-    }
-    
     return 0;
 }

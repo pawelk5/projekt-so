@@ -11,6 +11,7 @@ add_library(${STATIC_LIBRARY} STATIC
     "src/Utils.cpp"
     "src/SemaphoreArray.cpp"
     "src/Semaphore.cpp"
+    "src/Process.cpp"
 )
 
 target_compile_features(${STATIC_LIBRARY} PRIVATE cxx_std_20)

@@ -4,7 +4,7 @@
 #include <sys/types.h>
 
 struct SemaphoreLock {
-    SemaphoreLock(SemaphoreArray::Semaphore& sem, uint16_t val = 1)
+    explicit SemaphoreLock(SemaphoreArray::Semaphore& sem, uint16_t val = 1)
         :m_sem(sem), m_val(val), m_released(false)
     {
         m_sem->Wait(m_val);
