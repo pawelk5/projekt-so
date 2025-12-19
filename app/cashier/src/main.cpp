@@ -1,17 +1,16 @@
-#include "MainProc/MainProc.hpp"
+#include "CashierProc/CashierProc.hpp"
 #include <iostream>
-#include <ostream>
 
 int main() {
     try {
-        MainProc::Get().Init(true);
-        MainProc::Get().Run();
+        CashierProc::Get().Init();
+        CashierProc::Get().Run();
     } catch (std::exception e) {
         std::cerr << e.what() << std::endl;
     } 
 
     try {
-        MainProc::Get().Close();
+        CashierProc::Get().Close();
     } catch (std::exception e) {
         std::cerr << e.what() << std::endl;
         return -1;

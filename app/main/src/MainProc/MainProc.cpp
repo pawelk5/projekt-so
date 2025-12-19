@@ -10,20 +10,20 @@ MainProc& MainProc::Get() {
 }
 
 void MainProc::Run() {
-    {
-        auto t_semlock = m_sharedMemory->GetSemLock();
+    m_sharedMemory->WithSemLock([this]() {
         std::cout << "main semlock" << std::endl;
 
         sleep(3);
         std::cout << m_sharedMemory->GetData()->managerPID << std::endl;
-    }
+        std::cout << m_sharedMemory->GetData()->cashierPID << std::endl;
+    });
     
-    {
-        auto t_semlock = m_sharedMemory->GetSemLock();
+    m_sharedMemory->WithSemLock([this]() {
         std::cout << "main semlock" << std::endl;
 
         std::cout << m_sharedMemory->GetData()->managerPID << std::endl;
-    }
+        std::cout << m_sharedMemory->GetData()->cashierPID << std::endl;
+    });
 }
 
 void MainProc::pInitImpl() {
@@ -31,16 +31,14 @@ void MainProc::pInitImpl() {
         execl("./park-manager", "park-manager", NULL);
 
     if (fork() == 0)
-        execl("./park-manager", "park-manager", NULL);
+        execl("./park-cashier", "park-cashier", NULL);
 }
 
 void MainProc::pCloseImpl() {
     while(wait(NULL) > 0) { ; }
 
-    {
-        auto t_semlock = m_sharedMemory->GetSemLock();
-        std::cout << "main semlock" << std::endl;
-
+    m_sharedMemory->WithSemLock([this](){
         std::cout << m_sharedMemory->GetData()->managerPID << std::endl;
-    }
+        std::cout << m_sharedMemory->GetData()->cashierPID << std::endl;
+    });
 }
