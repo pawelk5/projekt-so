@@ -10,7 +10,7 @@ CashierProc& CashierProc::Get() {
 }
 
 void CashierProc::Run() {
-    
+    sleep(2);
 }
 
 void CashierProc::pInitImpl() {

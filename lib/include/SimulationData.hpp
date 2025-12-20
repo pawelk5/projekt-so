@@ -9,6 +9,8 @@
 #define MAIN_SEMAPHORE_ARRAY_PATH "/tmp/park_rozrywki_sem_main"
 #define MAIN_SEMAPHORE_ARRAY_KEY 'B'
 
+#define ATTRACTION_COUNT 17
+
 enum class MainSemaphoreArray : uint16_t {
     MainSharedMemorySemaphore,
     Count
@@ -19,5 +21,5 @@ struct SimulationData {
     __pid_t managerPID = 0;
     __pid_t cashierPID = 0;
     __pid_t restaurantPID = 0;
-    std::array<__pid_t, 17> attractionPID = { 0 };
+    std::array<__pid_t, ATTRACTION_COUNT> attractionPID = { 0 };
 };

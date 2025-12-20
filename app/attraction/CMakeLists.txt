@@ -1,10 +1,10 @@
 # local
-set(EXEC_NAME "park-restaurant")
+set(EXEC_NAME "park-attraction")
 set(LIBRARY_INCLUDE_PATH "${CMAKE_CURRENT_LIST_DIR}/include")
 
 add_executable(${EXEC_NAME}
     "src/main.cpp"
-    "src/RestaurantProc/RestaurantProc.cpp"
+    "src/AttractionProc/AttractionProc.cpp"
 )
 
 target_compile_features(${EXEC_NAME} PRIVATE cxx_std_20)
