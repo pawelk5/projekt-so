@@ -10,7 +10,7 @@ ManagerProc& ManagerProc::Get() {
 }
 
 void ManagerProc::Run() {
-    
+    sleep(2);
 }
 
 void ManagerProc::pInitImpl() {
