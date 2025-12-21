@@ -35,8 +35,9 @@ void AttractionProc::pInitImpl() {
 
 void AttractionProc::pCloseImpl() {
     if (m_attractionID != -1)
-        m_sharedMemory->WithSemLock([this]() {      
-            m_sharedMemory->GetData()->attractionPID[GetAttractionID()] = 0;
+        m_sharedMemory->WithSemLock([this]() {
+            if (m_sharedMemory->GetData()->attractionPID[GetAttractionID()] == getpid()) 
+                m_sharedMemory->GetData()->attractionPID[GetAttractionID()] = 0;
         });
 }
 

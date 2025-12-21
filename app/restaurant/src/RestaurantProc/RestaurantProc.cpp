@@ -22,7 +22,8 @@ void RestaurantProc::pInitImpl() {
 }
 
 void RestaurantProc::pCloseImpl() {
-    m_sharedMemory->WithSemLock([this]() {      
-        m_sharedMemory->GetData()->restaurantPID = 0;
+    m_sharedMemory->WithSemLock([this]() {    
+        if (m_sharedMemory->GetData()->restaurantPID == getpid())  
+            m_sharedMemory->GetData()->restaurantPID = 0;
     });
 }
