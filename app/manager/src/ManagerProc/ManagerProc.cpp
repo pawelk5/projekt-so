@@ -1,5 +1,6 @@
 #include "ManagerProc.hpp"
 #include <iostream>
+#include <unistd.h>
 
 ManagerProc::ManagerProc() { ; }
 ManagerProc::~ManagerProc() { ; }
@@ -26,10 +27,8 @@ void ManagerProc::pInitImpl() {
 
 void ManagerProc::pCloseImpl() {
     sleep(1);
-    {
-        auto t_semlock = m_sharedMemory->GetSemLock();
-        std::cout << "manager semlock" << std::endl;
-        
-        m_sharedMemory->GetData()->managerPID = 0;
-    }
+    m_sharedMemory->WithSemLock([this]() {
+        if (m_sharedMemory->GetData()->managerPID == getpid())
+            m_sharedMemory->GetData()->managerPID = 0;
+    });
 }
