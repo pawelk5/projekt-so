@@ -15,6 +15,9 @@ void CashierProc::Run() {
 
 void CashierProc::pInitImpl() {
     m_sharedMemory->GetSemLock().Execute([this]() {
+        if (!m_sharedMemory->GetData()->isOpen)
+            throw std::runtime_error("park is closed!");
+
         if (m_sharedMemory->GetData()->cashierPID != 0)
             throw std::runtime_error("cashier already exists!");
 
