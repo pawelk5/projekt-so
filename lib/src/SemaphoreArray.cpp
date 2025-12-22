@@ -18,7 +18,7 @@ SemaphoreArray::~SemaphoreArray() {
 }
 
 bool SemaphoreArray::DeleteSemaphoreArray() {
-    if (!m_isOwner)
+    if (!m_isOwner || m_semData.isEmpty())
         return false;
 
     if (semctl(m_semData.ID, m_semaphores.size(), IPC_RMID) == -1)

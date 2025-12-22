@@ -20,8 +20,6 @@ struct SemaphoreLock {
             Release();
             throw;
         }
-
-        Release();
     }
 
     ~SemaphoreLock() {
