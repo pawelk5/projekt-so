@@ -6,13 +6,13 @@ int main() {
     try {
         MainProc::Get().Init(true);
         MainProc::Get().Run();
-    } catch (std::exception e) {
+    } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
     } 
 
     try {
         MainProc::Get().Close();
-    } catch (std::exception e) {
+    } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         return -1;
     }

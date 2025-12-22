@@ -19,6 +19,9 @@ void AttractionProc::Run() {
 
 void AttractionProc::pInitImpl() {
     m_sharedMemory->GetSemLock().Execute([this]() {
+        if (!m_sharedMemory->GetData()->isOpen)
+            throw std::runtime_error("park is closed!");
+
         bool changed = false;
         for (int i = 0; i < ATTRACTION_COUNT; i++) {
             if (m_sharedMemory->GetData()->attractionPID[i] == 0) {

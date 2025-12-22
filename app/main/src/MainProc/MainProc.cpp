@@ -27,6 +27,10 @@ void MainProc::Run() {
 }
 
 void MainProc::pInitImpl() {
+    m_sharedMemory->GetSemLock().Execute([this] {
+        m_sharedMemory->GetData()->isOpen = true;
+    });
+
     if (fork() == 0)
         execl("./park-manager", "park-manager", NULL);
 

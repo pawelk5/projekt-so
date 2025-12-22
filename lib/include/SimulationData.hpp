@@ -18,6 +18,7 @@ enum class MainSemaphoreArray : uint16_t {
 
 struct SimulationData {
     key_t sharedMemoryKey = 0;
+    bool isOpen = 0;
     __pid_t managerPID = 0;
     __pid_t cashierPID = 0;
     __pid_t restaurantPID = 0;

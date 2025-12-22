@@ -15,14 +15,14 @@ void ManagerProc::Run() {
 }
 
 void ManagerProc::pInitImpl() {
-    {
-        m_sharedMemory->GetSemLock().Execute([this]() {
-            if (m_sharedMemory->GetData()->managerPID != 0)
-                throw std::runtime_error("manager already exists!");
-
-            m_sharedMemory->GetData()->managerPID = getpid();
-        });
-    }
+    m_sharedMemory->GetSemLock().Execute([this]() {
+        if (!m_sharedMemory->GetData()->isOpen)
+            throw std::runtime_error("park is closed!");
+        
+        if (m_sharedMemory->GetData()->managerPID != 0)
+            throw std::runtime_error("manager already exists!");
+        m_sharedMemory->GetData()->managerPID = getpid();
+    });
 }
 
 void ManagerProc::pCloseImpl() {

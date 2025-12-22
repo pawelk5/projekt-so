@@ -5,13 +5,13 @@ int main() {
     try {
         AttractionProc::Get().Init();
         AttractionProc::Get().Run();
-    } catch (std::exception e) {
+    } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
     } 
 
     try {
         AttractionProc::Get().Close();
-    } catch (std::exception e) {
+    } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         return -1;
     }

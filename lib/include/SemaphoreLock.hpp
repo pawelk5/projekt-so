@@ -16,9 +16,9 @@ struct SemaphoreLock {
         try {
             function();
         }
-        catch (std::exception e) {
+        catch (const std::exception& e) {
             Release();
-            throw e;
+            throw;
         }
 
         Release();

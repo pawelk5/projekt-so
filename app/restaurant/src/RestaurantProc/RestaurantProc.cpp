@@ -14,6 +14,9 @@ void RestaurantProc::Run() {
 
 void RestaurantProc::pInitImpl() {
     m_sharedMemory->GetSemLock().Execute([this]() {
+        if (!m_sharedMemory->GetData()->isOpen)
+            throw std::runtime_error("park is closed!");
+        
         if (m_sharedMemory->GetData()->restaurantPID != 0)
             throw std::runtime_error("restaurant already exists!");
 
