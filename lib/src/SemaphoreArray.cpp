@@ -21,7 +21,8 @@ bool SemaphoreArray::DeleteSemaphoreArray() {
     if (!m_isOwner)
         return false;
 
-    semctl(m_semData.ID, m_semaphores.size(), IPC_RMID);
+    if (semctl(m_semData.ID, m_semaphores.size(), IPC_RMID) == -1)
+        throw std::runtime_error("Couldn't delete semaphore array!");
     return true;
 }
 
@@ -31,13 +32,16 @@ bool SemaphoreArray::GetSemaphoreArray(const std::string& semPath, int semKey, u
 
     if (create)
         if (!CreateEmptyFile(semPath))
-            return false;
+            throw std::runtime_error("Couldn't create semaphore array file!");
 
     if (!m_semaphores.empty() && m_isOwner)
         DeleteSemaphoreArray();
 
-    m_semData.Key = ftok(semPath.c_str(), semKey);
-    m_semData.ID = semget(m_semData.Key, nSems, IPC_CREAT | (IPC_EXCL && create) | 0666);
+    if ((m_semData.Key = ftok(semPath.c_str(), semKey)) == -1)
+        throw std::runtime_error("Couldn't generate semaphore array key!");
+
+    if ((m_semData.ID = semget(m_semData.Key, nSems, IPC_CREAT | (IPC_EXCL && create) | 0666)) == -1)
+        throw std::runtime_error("Couldn't create semaphore array key!");
     m_isOwner = create;
 
     pGenerateSemaphores(nSems);
@@ -64,21 +68,17 @@ bool SemaphoreArray::SemSignal(int semID, int16_t value) {
     action.sem_num = semID;
     action.sem_flg = 0;
 
-    semop(m_semData.ID, &action, 1);
-    return true;
+    return (semop(m_semData.ID, &action, 1) != -1);
 }
 
 bool SemaphoreArray::SemSetValue(int semID, int16_t value) {
-    semctl(m_semData.ID, semID, SETVAL, value);
-    return true;
+    return (semctl(m_semData.ID, semID, SETVAL, value) != -1);
 }
 
 int SemaphoreArray::SemGetValue(int semID) {
-    return semctl(m_semData.ID, semID, GETVAL);
+    return (semctl(m_semData.ID, semID, GETVAL) != -1);
 }
 
 SemaphoreArray::Semaphore SemaphoreArray::GetSemaphore(u_int16_t semID) {
-    if (semID >= m_semaphores.size())
-        return nullptr;
-    return m_semaphores.at(semID);
+    return semID >= m_semaphores.size() ? nullptr : m_semaphores.at(semID);
 }

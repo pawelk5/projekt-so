@@ -18,7 +18,7 @@ void AttractionProc::Run() {
 }
 
 void AttractionProc::pInitImpl() {
-    m_sharedMemory->WithSemLock([this]() {
+    m_sharedMemory->GetSemLock().Execute([this]() {
         bool changed = false;
         for (int i = 0; i < ATTRACTION_COUNT; i++) {
             if (m_sharedMemory->GetData()->attractionPID[i] == 0) {
@@ -35,7 +35,7 @@ void AttractionProc::pInitImpl() {
 
 void AttractionProc::pCloseImpl() {
     if (m_attractionID != -1)
-        m_sharedMemory->WithSemLock([this]() {
+        m_sharedMemory->GetSemLock().Execute([this]() {
             if (m_sharedMemory->GetData()->attractionPID[GetAttractionID()] == getpid()) 
                 m_sharedMemory->GetData()->attractionPID[GetAttractionID()] = 0;
         });

@@ -10,6 +10,20 @@ struct SemaphoreLock {
         m_sem->Wait(m_val);
     }
 
+    // try to execute and automatically release semlock
+    template<class Callable>
+    void Execute(Callable function) {
+        try {
+            function();
+        }
+        catch (std::exception e) {
+            Release();
+            throw e;
+        }
+
+        Release();
+    }
+
     ~SemaphoreLock() {
         Release();
     }

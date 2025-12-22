@@ -16,7 +16,7 @@ void ManagerProc::Run() {
 
 void ManagerProc::pInitImpl() {
     {
-        m_sharedMemory->WithSemLock([this]() {
+        m_sharedMemory->GetSemLock().Execute([this]() {
             if (m_sharedMemory->GetData()->managerPID != 0)
                 throw std::runtime_error("manager already exists!");
 
@@ -27,7 +27,7 @@ void ManagerProc::pInitImpl() {
 
 void ManagerProc::pCloseImpl() {
     sleep(1);
-    m_sharedMemory->WithSemLock([this]() {
+    m_sharedMemory->GetSemLock().Execute([this]() {
         if (m_sharedMemory->GetData()->managerPID == getpid())
             m_sharedMemory->GetData()->managerPID = 0;
     });
