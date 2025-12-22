@@ -17,6 +17,6 @@ void Process::Init(bool createIPC) {
 void Process::Close() {
     pCloseImpl();
 
-    m_semaphoreArray = nullptr;
     m_sharedMemory = nullptr;
+    m_semaphoreArray = nullptr;
 }

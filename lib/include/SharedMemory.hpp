@@ -1,5 +1,5 @@
 #pragma once
-#include <exception>
+#include <stdexcept>
 #include <string>
 #include <sys/types.h>
 #include <sys/ipc.h>
@@ -16,9 +16,7 @@ public:
         key_t Key;
         key_t ID;
 
-        bool isEmpty() {
-            return Key == 0 && ID == 0;
-        }
+        bool isEmpty() { return Key <= 0 && ID <= 0; }
     };
 
 public:
@@ -37,20 +35,6 @@ public:
 
     SemaphoreLock GetSemLock() { return SemaphoreLock(m_sem); }
 
-    // Exception-safe semlock
-    template<class Callable>
-    void WithSemLock(Callable function) {
-        auto t_semlock = GetSemLock();
-
-        try {
-            function();
-        }
-        catch (std::exception e) {
-            t_semlock.Release();
-            throw e;
-        }
-    }
-
     SemaphoreArray::Semaphore GetSemaphore() { return m_sem; }
     T* const GetData() { return m_memPtr; }
 
@@ -60,7 +44,7 @@ private:
             return true;
 
         int result = shmdt((void* const) m_memPtr);
-        // todo: check for errors
+        // todo: check for errors ?
         m_memPtr = nullptr;
 
         // if the object created shared memory then it will automatically remove it when it detaches it
@@ -72,8 +56,8 @@ private:
     }
 
     void pDeleteMemory() {
-        shmctl(m_memData.ID, IPC_RMID, nullptr);
-        // todo: check for errors
+        if (auto result = shmctl(m_memData.ID, IPC_RMID, nullptr))
+            throw std::runtime_error("Couldn't delete shared memory!");
 
         m_isOwner = false;
         m_memData = { 0, 0 };
@@ -83,17 +67,24 @@ private:
     bool pAttachMemory(const std::string& shmPath, int shmKey, SemaphoreArray::Semaphore shmSemaphore, bool create) {
         if (create)
             if (!CreateEmptyFile(shmPath))
-                return false;
+                throw std::runtime_error("Couldn't create shared memory file!");
 
         if (!m_memData.isEmpty())
             pDetachMemory();
 
-        m_memData.Key = ftok(shmPath.c_str(), shmKey);
-        m_memData.ID = shmget(m_memData.Key, sizeof(T), IPC_CREAT | (IPC_EXCL && create) | 0666);
+        if ( (m_memData.Key = ftok(shmPath.c_str(), shmKey)) 
+            == -1 )
+            throw std::runtime_error("Couldn't generate shared memory key!");
+        if ( (m_memData.ID = shmget(m_memData.Key, sizeof(T), IPC_CREAT | (IPC_EXCL && create) | 0666))
+            == -1 ) 
+            throw std::runtime_error("Couldn't allocate shared memory!");
+        
         m_isOwner = create;
 
         // attach pointer
-        m_memPtr = (T*)shmat(m_memData.ID, nullptr, IPC_CREAT | 0666);
+        if (!(m_memPtr = (T*)shmat(m_memData.ID, nullptr, IPC_CREAT | 0666)))
+            throw std::runtime_error("Couldn't attach shared memory!");
+
         m_sem = shmSemaphore;
         if (m_isOwner)
             m_sem->SetValue(1);

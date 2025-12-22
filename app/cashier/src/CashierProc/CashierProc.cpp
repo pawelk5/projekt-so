@@ -14,7 +14,7 @@ void CashierProc::Run() {
 }
 
 void CashierProc::pInitImpl() {
-    m_sharedMemory->WithSemLock([this]() {
+    m_sharedMemory->GetSemLock().Execute([this]() {
         if (m_sharedMemory->GetData()->cashierPID != 0)
             throw std::runtime_error("cashier already exists!");
 
@@ -23,7 +23,7 @@ void CashierProc::pInitImpl() {
 }
 
 void CashierProc::pCloseImpl() {
-    m_sharedMemory->WithSemLock([this]() {     
+    m_sharedMemory->GetSemLock().Execute([this]() {     
         if (m_sharedMemory->GetData()->cashierPID == getpid()) 
             m_sharedMemory->GetData()->cashierPID = 0;
     });
