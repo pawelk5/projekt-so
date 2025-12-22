@@ -10,6 +10,7 @@
 #define MAIN_SEMAPHORE_ARRAY_KEY 'B'
 
 #define ATTRACTION_COUNT 17
+#define PARK_SIZE 100
 
 enum class MainSemaphoreArray : uint16_t {
     MainSharedMemorySemaphore,
@@ -17,7 +18,7 @@ enum class MainSemaphoreArray : uint16_t {
 };
 
 struct SimulationData {
-    key_t sharedMemoryKey = 0;
+    uint16_t parkSize = 0;
     bool isOpen = 0;
     __pid_t managerPID = 0;
     __pid_t cashierPID = 0;

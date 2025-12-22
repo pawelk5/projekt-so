@@ -50,6 +50,8 @@ private:
     struct SemData {
         key_t Key;
         int ID;
+
+        bool isEmpty() { return Key <= 0 && ID <= 0; }
     };
 
     SemData m_semData;

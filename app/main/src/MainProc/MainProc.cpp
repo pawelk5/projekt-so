@@ -29,6 +29,7 @@ void MainProc::Run() {
 void MainProc::pInitImpl() {
     m_sharedMemory->GetSemLock().Execute([this] {
         m_sharedMemory->GetData()->isOpen = true;
+        m_sharedMemory->GetData()->parkSize = PARK_SIZE;
     });
 
     if (fork() == 0)
