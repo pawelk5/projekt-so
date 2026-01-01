@@ -13,12 +13,11 @@ SemaphoreArray::SemaphoreArray()
 }
 
 SemaphoreArray::~SemaphoreArray() {
-    if (m_isOwner)
-        DeleteSemaphoreArray();
+    DeleteSemaphoreArray();
 }
 
 bool SemaphoreArray::DeleteSemaphoreArray() {
-    if (!m_isOwner || m_semData.isEmpty())
+    if (!m_isOwner || m_semData.isEmpty() || m_semData.ID <= 0)
         return false;
 
     if (semctl(m_semData.ID, m_semaphores.size(), IPC_RMID) == -1)
@@ -40,7 +39,7 @@ bool SemaphoreArray::GetSemaphoreArray(const std::string& semPath, int semKey, u
     if ((m_semData.Key = ftok(semPath.c_str(), semKey)) == -1)
         throw std::runtime_error("Couldn't generate semaphore array key!");
 
-    if ((m_semData.ID = semget(m_semData.Key, nSems, IPC_CREAT | (IPC_EXCL && create) | 0666)) == -1)
+    if ((m_semData.ID = semget(m_semData.Key, nSems, IPC_CREAT | (create ? IPC_EXCL : 0) | 0666)) == -1)
         throw std::runtime_error("Couldn't create semaphore array key!");
     m_isOwner = create;
 
@@ -59,14 +58,14 @@ void SemaphoreArray::pGenerateSemaphores(u_int16_t nSems) {
         ));
 }
 
-bool SemaphoreArray::SemSignal(int semID, int16_t value) {
+bool SemaphoreArray::SemSignal(int semID, int16_t value, bool semundo) {
     if (m_semData.ID == 0 || semID < 0 || semID >= m_semaphores.size())
         return false;
 
     sembuf action;
     action.sem_op = value;
     action.sem_num = semID;
-    action.sem_flg = 0;
+    action.sem_flg = semundo;
 
     return (semop(m_semData.ID, &action, 1) != -1);
 }

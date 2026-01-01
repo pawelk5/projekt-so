@@ -14,7 +14,9 @@ AttractionProc& AttractionProc::Get() {
 }
 
 void AttractionProc::Run() {
-    sleep(2);
+    while (m_sharedMemory->GetData()->isOpen) {
+        sleep(1);
+    }
 }
 
 void AttractionProc::pInitImpl() {

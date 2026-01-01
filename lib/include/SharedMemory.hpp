@@ -75,7 +75,7 @@ private:
         if ( (m_memData.Key = ftok(shmPath.c_str(), shmKey)) 
             == -1 )
             throw std::runtime_error("Couldn't generate shared memory key!");
-        if ( (m_memData.ID = shmget(m_memData.Key, sizeof(T), IPC_CREAT | (IPC_EXCL && create) | 0666))
+        if ( (m_memData.ID = shmget(m_memData.Key, sizeof(T), IPC_CREAT | (create ? IPC_EXCL : 0) | 0666))
             == -1 ) 
             throw std::runtime_error("Couldn't allocate shared memory!");
         

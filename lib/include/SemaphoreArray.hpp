@@ -9,7 +9,7 @@ class SemaphoreArray {
 public:
     struct SemaphoreStruct {
         friend SemaphoreArray;
-        bool Wait(u_int16_t value = 1);
+        bool Wait(u_int16_t value = 1, bool semundo = false);
         bool Signal(u_int16_t value = 1);
         bool SetValue(int16_t value);
         int GetValue();
@@ -28,14 +28,14 @@ public:
 public:
     SemaphoreArray();
     ~SemaphoreArray();
-
+    
     bool GetSemaphoreArray(const std::string& semPath, int semKey, u_int16_t nSems, bool create = false);
     bool DeleteSemaphoreArray();
 
     Semaphore GetSemaphore(u_int16_t semID);
 
 protected:
-    bool SemSignal(int semID, int16_t value);
+    bool SemSignal(int semID, int16_t value, bool semundo);
     bool SemSetValue(int semID, int16_t value);
     int SemGetValue(int semID);
     

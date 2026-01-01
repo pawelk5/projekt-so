@@ -1,4 +1,5 @@
 #include "Utils.hpp"
+#include <ctime>
 #include <fstream>
 
 bool CreateEmptyFile(const std::string& filepath) {
@@ -8,4 +9,8 @@ bool CreateEmptyFile(const std::string& filepath) {
     
     file.close();
     return true;
+}
+
+timespec CreateTimestamp(int add = 0) {
+    return timespec{ .tv_sec = time(NULL) + add , .tv_nsec = 0 };
 }
