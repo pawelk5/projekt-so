@@ -13,7 +13,6 @@ MainProc& MainProc::Get() {
 void MainProc::Run() {
     sleep(1);
     m_sharedMemory->GetSemLock().Execute([this]() {
-        std::cout << "main semlock" << std::endl;
         std::cout << m_sharedMemory->GetData()->managerPID << std::endl;
         std::cout << m_sharedMemory->GetData()->cashierPID << std::endl;
         std::cout << m_sharedMemory->GetData()->restaurantPID << std::endl;
@@ -48,11 +47,13 @@ void MainProc::pInitImpl() {
 }
 
 void MainProc::pCloseImpl() {
+    m_sharedMemory->GetSemLock().Execute([this]() {
+        m_sharedMemory->GetData()->isOpen = false;
+    });
+
     while(wait(NULL) > 0) { ; }
 
     m_sharedMemory->GetSemLock().Execute([this]() {
-        std::cout << "main semlock" << std::endl;
-
         std::cout << m_sharedMemory->GetData()->managerPID << std::endl;
         std::cout << m_sharedMemory->GetData()->cashierPID << std::endl;
         std::cout << m_sharedMemory->GetData()->restaurantPID << std::endl;

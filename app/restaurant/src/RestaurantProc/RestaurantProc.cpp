@@ -9,7 +9,9 @@ RestaurantProc& RestaurantProc::Get() {
 }
 
 void RestaurantProc::Run() {
-    sleep(2);
+    while (m_sharedMemory->GetData()->isOpen) {
+        sleep(1);
+    }
 }
 
 void RestaurantProc::pInitImpl() {

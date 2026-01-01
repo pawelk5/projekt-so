@@ -7,7 +7,7 @@ struct SemaphoreLock {
     explicit SemaphoreLock(SemaphoreArray::Semaphore& sem, uint16_t val = 1)
         :m_sem(sem), m_val(val), m_released(false)
     {
-        m_sem->Wait(m_val);
+        m_sem->Wait(m_val, true);
     }
 
     // try to execute and automatically release semlock
