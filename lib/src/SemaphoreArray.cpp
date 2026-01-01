@@ -65,7 +65,7 @@ bool SemaphoreArray::SemSignal(int semID, int16_t value, bool semundo) {
     sembuf action;
     action.sem_op = value;
     action.sem_num = semID;
-    action.sem_flg = semundo;
+    action.sem_flg = semundo ? SEM_UNDO : 0;
 
     return (semop(m_semData.ID, &action, 1) != -1);
 }
