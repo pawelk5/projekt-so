@@ -13,11 +13,11 @@ ClientProc& ClientProc::Get() {
 }
 
 void ClientProc::Run() {
-    auto reg = GetCashierMQ(m_sharedMemory->GetData()->cashierPID);
+    auto reg = GetRegisterMQ(m_sharedMemory->GetData()->cashierPID);
     RegisterMQMessage message;
     message.mType = RegisterMessageType::ENTER_PARK;
     message.senderPID = getpid();
-    message.msg.enterPark = EnterPark{ .hasChild=false, .childTID=-1 };
+    message.content = EnterPark{ .hasChild=false, .childTID=-1 };
 
     reg->SendMessage(message);
 }

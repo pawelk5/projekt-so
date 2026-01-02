@@ -27,7 +27,7 @@ void CashierProc::pInitImpl() {
         m_sharedMemory->GetData()->cashierPID = getpid();
     });
 
-    m_registerQueue = GetCashierMQ(m_sharedMemory->GetData()->cashierPID, true);
+    m_registerQueue = GetRegisterMQ(m_sharedMemory->GetData()->cashierPID, true);
 }
 
 void CashierProc::pCloseImpl() {
