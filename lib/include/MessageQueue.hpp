@@ -98,14 +98,14 @@ public:
         int result = 0;
         if (timeout > 0) {
             auto ts = CreateTimestamp(timeout);
-            result = mq_timedreceive(m_msqID, (char*)(&(*dst)), sizeof(int), NULL, &ts);
+            result = mq_timedreceive(m_msqID, (char*)(&(*dst)), sizeof(MessageType), NULL, &ts);
         }
         else {
-            result = mq_receive(m_msqID, (char*)(&(*dst)), sizeof(int), NULL);
+            result = mq_receive(m_msqID, (char*)(&(*dst)), sizeof(MessageType), NULL);
         }
 
         if (result == -1){
-            if (errno == EAGAIN)
+            if (errno == EAGAIN || errno == ETIMEDOUT)
                 return nullptr;
             else
                 throw std::runtime_error("Couldn't recieve message!");

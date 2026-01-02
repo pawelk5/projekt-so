@@ -22,7 +22,12 @@ void MainProc::Run() {
             std::cout << i << ": " << m_sharedMemory->GetData()->attractionPID[i] << std::endl;
     });
 
-    sleep(1);
+    for (int i = 0; i < 30; i++){
+        if (fork() == 0)
+            execl("./park-client", "park-client", NULL);
+    }
+
+    sleep(5);
 }
 
 void MainProc::pInitImpl() {
@@ -41,9 +46,10 @@ void MainProc::pInitImpl() {
         execl("./park-restaurant", "park-restaurant", NULL);
 
 
-    for (int i = 0; i < ATTRACTION_COUNT; i++)
+    for (int i = 0; i < ATTRACTION_COUNT; i++){
         if (fork() == 0)
             execl("./park-attraction", "park-attraction", NULL);
+    }
 }
 
 void MainProc::pCloseImpl() {

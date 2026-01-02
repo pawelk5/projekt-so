@@ -1,5 +1,6 @@
 #include "Process.hpp"
 #include "Messages.hpp"
+#include <exception>
 #include <memory>
 #include <string>
 #include <unistd.h>
@@ -27,8 +28,14 @@ void Process::Init(bool createIPC) {
 }
 
 void Process::Close() {
+    try {
     pCloseImpl();
-
+    } catch (const std::exception& e) {
+        m_sharedMemory = nullptr;
+        m_semaphoreArray = nullptr;
+        m_messageQueue = nullptr;
+        throw;
+    }
     m_sharedMemory = nullptr;
     m_semaphoreArray = nullptr;
     m_messageQueue = nullptr;

@@ -1,4 +1,5 @@
 #include "CashierProc.hpp"
+#include "PredefinedMQ.hpp"
 #include <iostream>
 
 CashierProc::CashierProc() { ; }
@@ -11,7 +12,7 @@ CashierProc& CashierProc::Get() {
 
 void CashierProc::Run() {
     while (m_sharedMemory->GetData()->isOpen) {
-        sleep(1);
+        pHandleRegisterMQ();
     }
 }
 
@@ -25,6 +26,8 @@ void CashierProc::pInitImpl() {
 
         m_sharedMemory->GetData()->cashierPID = getpid();
     });
+
+    m_registerQueue = GetCashierMQ(m_sharedMemory->GetData()->cashierPID, true);
 }
 
 void CashierProc::pCloseImpl() {
@@ -32,4 +35,15 @@ void CashierProc::pCloseImpl() {
         if (m_sharedMemory->GetData()->cashierPID == getpid()) 
             m_sharedMemory->GetData()->cashierPID = 0;
     });
+    
+    m_registerQueue = nullptr;
+}
+
+void CashierProc::pHandleRegisterMQ() {
+    auto registerMsg = m_registerQueue->RecieveMessage(1);
+    if (!registerMsg)
+        return;
+
+    std::cout << "Kasa otrzymala wiadomosc od " << registerMsg->senderPID << std::endl;
+    std::cout << "Typ wiadomosci: " << (int)registerMsg->mType << std::endl;
 }

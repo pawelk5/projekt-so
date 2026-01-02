@@ -12,6 +12,7 @@ add_library(${STATIC_LIBRARY} STATIC
     "src/SemaphoreArray.cpp"
     "src/Semaphore.cpp"
     "src/Process.cpp"
+    "src/PredefinedMQ.cpp"
 )
 
 target_compile_features(${STATIC_LIBRARY} PRIVATE cxx_std_20)

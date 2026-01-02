@@ -1,22 +1,21 @@
 #pragma once
+#include <cstdint>
 #include <variant>
 
-enum class MainMQMessageType {
+enum class MainMQMessageType : int {
     END_SIMULATION
 };
 
 /// MAIN QUEUE
 struct EndSimulation {};
 
-typedef 
-    std::variant<EndSimulation>
-    MainQueueMessage;
-
 struct MainMQMessage {
     int senderPID;
-    int mType;
+    MainMQMessageType mType;
 
-    MainQueueMessage msg;
+    union content {
+        EndSimulation endSimulation;
+    } msg;
 };
 
 
@@ -39,6 +38,22 @@ struct Bill {
     float price;
 };
 
-typedef
-    std::variant<EnterPark, ExitPark, EntryPermit, Bill>
-    CashierMessage;
+enum class RegisterMessageType : int {
+    ENTER_PARK,
+    EXIT_PARK,
+    ENTRY_PERMIT,
+    BILL
+};
+
+struct RegisterMQMessage {
+    int senderPID;
+    RegisterMessageType mType;
+    
+    union content {
+        EnterPark enterPark;
+        ExitPark exitPark;
+        EntryPermit entryPermit;
+        Bill bill;
+    } msg;
+};
+

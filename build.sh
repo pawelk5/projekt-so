@@ -13,4 +13,5 @@ cp build/app/main/park-main bin/
 cp build/app/cashier/park-cashier bin/
 cp build/app/restaurant/park-restaurant bin/
 cp build/app/attraction/park-attraction bin/
+cp build/app/client/park-client bin/
 )
