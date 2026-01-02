@@ -2,7 +2,7 @@
 #include "MessageQueue.hpp"
 #include <string>
 
-RegisterMQ GetCashierMQ(pid_t cashierPID, bool cashier) {
+RegisterMQ GetRegisterMQ(pid_t cashierPID, bool cashier) {
     RegisterMQ t_mq = std::make_shared<MessageQueue<RegisterMQMessage>>();
     MessageQueueParams t_params;
     t_params.blocking = false;
