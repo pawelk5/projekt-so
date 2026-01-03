@@ -2,6 +2,7 @@
 #include "Messages.hpp"
 #include <exception>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <unistd.h>
 
@@ -10,11 +11,13 @@ void Process::Init(bool createIPC) {
     m_sharedMemory = std::make_shared<SharedMemory<SimulationData>>();
     m_messageQueue = std::make_shared<MessageQueue<MainMQMessage>>();
 
-    m_semaphoreArray->GetSemaphoreArray(MAIN_SEMAPHORE_ARRAY_PATH, MAIN_SEMAPHORE_ARRAY_KEY,
-        (uint16_t)MainSemaphoreArray::Count, createIPC);
+    if (!m_semaphoreArray->GetSemaphoreArray(MAIN_SEMAPHORE_ARRAY_PATH, MAIN_SEMAPHORE_ARRAY_KEY,
+        (uint16_t)MainSemaphoreArray::Count, createIPC))
+        throw std::runtime_error("Couldn't create semaphore array!");
     
-    m_sharedMemory->AttachMemory(SHARED_MEMORY_PATH, SHARED_MEMORY_KEY,
-        m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::MainSharedMemorySemaphore), createIPC);
+    if (!m_sharedMemory->AttachMemory(SHARED_MEMORY_PATH, SHARED_MEMORY_KEY,
+        m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::MainSharedMemorySemaphore), createIPC))
+        throw std::runtime_error("Couldn't attach shared memory!");
     
     MessageQueueParams t_msqParams;
     t_msqParams.create = true;
@@ -22,7 +25,8 @@ void Process::Init(bool createIPC) {
     t_msqParams.msqName = std::to_string(getpid());
     t_msqParams.maxMsgCount = DEFAULT_MAX_MSQ_SIZE;
 
-    m_messageQueue->OpenMessageQueue(t_msqParams);
+    if (!m_messageQueue->OpenMessageQueue(t_msqParams))
+        throw std::runtime_error("Couldn't open message queue!");
 
     pInitImpl();
 }
