@@ -2,6 +2,7 @@
 #include "Utils.hpp"
 #include <cerrno>
 #include <cstdint>
+#include <cstdio>
 #include <memory>
 #include <stdexcept>
 #include <sys/types.h>
@@ -43,8 +44,10 @@ public:
         m_msqID = mq_open(m_msqName.c_str(), O_RDWR | O_CREAT | (params.create ? O_EXCL : 0),
             0600, &mqattr);
         
-        if (m_msqID == -1)
+        if (m_msqID == -1) {
+            perror("mq_open error");
             throw std::runtime_error("Couldn't open message queue!");
+        }
 
         return true;
     }
@@ -53,12 +56,16 @@ public:
         if (m_msqID <= 0)
             return false;
 
-        if (mq_close(m_msqID) == -1)
+        if (mq_close(m_msqID) == -1) {
+            perror("mq_close error");
             throw std::runtime_error("Couldn't unlink message queue!");
+        }
 
         if (m_owner) {
-            if (mq_unlink(m_msqName.c_str()) == -1)
+            if (mq_unlink(m_msqName.c_str()) == -1) {
+                perror("mq_unlink error");
                 throw std::runtime_error("Couldn't close message queue!");
+            }
         }
         
         m_msqID = 0;
@@ -81,10 +88,12 @@ public:
         }
 
         if (result == -1) {
-            if (errno == EAGAIN)
+            if (errno == EAGAIN || errno == ETIMEDOUT)
                 return false;
-            else
-                throw std::runtime_error("Couldn't recieve message!");
+            else {
+                perror("mq_send/mq_timedsend error");
+                throw std::runtime_error("Couldn't send message!");
+            }
         }
 
         return true;
@@ -107,8 +116,10 @@ public:
         if (result == -1){
             if (errno == EAGAIN || errno == ETIMEDOUT)
                 return nullptr;
-            else
+            else {
+                perror("mq_receive/mq_timedreceive error");
                 throw std::runtime_error("Couldn't recieve message!");
+            }
         }
 
         return dst;
