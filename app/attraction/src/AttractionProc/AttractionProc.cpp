@@ -34,7 +34,7 @@ void AttractionProc::pInitImpl() {
             }
         }
         if (!changed)
-            throw std::runtime_error("restaurant already exists!");        
+            throw std::runtime_error("all atractions already exist!");        
     });
 }
 

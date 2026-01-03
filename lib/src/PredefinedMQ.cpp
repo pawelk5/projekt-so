@@ -10,6 +10,7 @@ RegisterMQ GetRegisterMQ(pid_t cashierPID, bool cashier) {
     t_params.msqName = std::to_string(cashierPID) + "-cashier";
     t_params.maxMsgCount = DEFAULT_MAX_MSQ_SIZE;
 
-    t_mq->OpenMessageQueue(t_params);
+    if (!t_mq->OpenMessageQueue(t_params))
+        return nullptr;
     return t_mq;
 }

@@ -56,9 +56,10 @@ private:
     }
 
     void pDeleteMemory() {
-        if (auto result = shmctl(m_memData.ID, IPC_RMID, nullptr))
+        if (auto result = shmctl(m_memData.ID, IPC_RMID, nullptr)) {
+            perror("shmctl (delete) error");
             throw std::runtime_error("Couldn't delete shared memory!");
-
+        }
         m_isOwner = false;
         m_memData = { 0, 0 };
         m_memPtr = nullptr;
@@ -72,18 +73,22 @@ private:
         if (!m_memData.isEmpty())
             pDetachMemory();
 
-        if ( (m_memData.Key = ftok(shmPath.c_str(), shmKey)) 
-            == -1 )
+        if ( (m_memData.Key = ftok(shmPath.c_str(), shmKey)) == -1 ){
+            perror("ftok (shmget) error");
             throw std::runtime_error("Couldn't generate shared memory key!");
-        if ( (m_memData.ID = shmget(m_memData.Key, sizeof(T), IPC_CREAT | (create ? IPC_EXCL : 0) | 0666))
-            == -1 ) 
+        }
+        if ( (m_memData.ID = shmget(m_memData.Key, sizeof(T), IPC_CREAT | (create ? IPC_EXCL : 0) | 0666)) == -1 ) {
+            perror("shmget error");
             throw std::runtime_error("Couldn't allocate shared memory!");
+        }
         
         m_isOwner = create;
 
         // attach pointer
-        if (!(m_memPtr = (T*)shmat(m_memData.ID, nullptr, IPC_CREAT | 0666)))
+        if (!(m_memPtr = (T*)shmat(m_memData.ID, nullptr, IPC_CREAT | 0666))) {
+            perror("shmat error");
             throw std::runtime_error("Couldn't attach shared memory!");
+        }
 
         m_sem = shmSemaphore;
         if (m_isOwner)
