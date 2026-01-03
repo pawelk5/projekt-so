@@ -1,6 +1,7 @@
 #include "SemaphoreArray.hpp"
 #include "Utils.hpp"
 #include <cstdint>
+#include <cstdio>
 #include <memory>
 #include <sys/ipc.h>
 #include <sys/sem.h>
@@ -74,15 +75,26 @@ bool SemaphoreArray::SemSignal(int semID, int16_t value, bool semundo) {
     action.sem_num = semID;
     action.sem_flg = semundo ? SEM_UNDO : 0;
 
-    return (semop(m_semData.ID, &action, 1) != -1);
+    if (semop(m_semData.ID, &action, 1) == -1) {
+        perror("semop error");
+        return false;
+    }
+    return true;
 }
 
 bool SemaphoreArray::SemSetValue(int semID, int16_t value) {
-    return (semctl(m_semData.ID, semID, SETVAL, value) != -1);
+    if (semctl(m_semData.ID, semID, SETVAL, value) == -1) {
+        perror("semctl (setval) error");
+        return false;
+    }
+    return true;
 }
 
 int SemaphoreArray::SemGetValue(int semID) {
-    return (semctl(m_semData.ID, semID, GETVAL) != -1);
+    int value = semctl(m_semData.ID, semID, GETVAL);
+    if (value == -1)
+        perror("semctl (getval) error");
+    return value;
 }
 
 SemaphoreArray::Semaphore SemaphoreArray::GetSemaphore(u_int16_t semID) {
