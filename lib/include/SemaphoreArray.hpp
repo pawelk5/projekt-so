@@ -23,7 +23,7 @@ public:
     };
     friend SemaphoreStruct;
     // Semaphore is a shared ptr to a semaphore struct !! CAN BE NULL
-    typedef std::shared_ptr<SemaphoreStruct> Semaphore;
+    using Semaphore = std::shared_ptr<SemaphoreStruct>;
 
 public:
     SemaphoreArray();

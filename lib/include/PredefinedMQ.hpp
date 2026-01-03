@@ -3,5 +3,5 @@
 #include "MessageQueue.hpp"
 #include <memory>
 
-typedef std::shared_ptr<MessageQueue<RegisterMQMessage>> RegisterMQ;
+using RegisterMQ = std::shared_ptr<MessageQueue<RegisterMQMessage>>;
 RegisterMQ GetRegisterMQ(pid_t cashierPID, bool cashier = false);

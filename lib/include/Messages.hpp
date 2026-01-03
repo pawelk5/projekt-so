@@ -9,7 +9,7 @@ enum class MainMQMessageType : int {
 /// MAIN QUEUE
 struct EndSimulation {};
 
-typedef std::variant<EndSimulation> MainMQMessageContent;
+using MainMQMessageContent = std::variant<EndSimulation>;
 
 struct MainMQMessage {
     int senderPID;
@@ -45,7 +45,7 @@ enum class RegisterMessageType : int {
     BILL
 };
 
-typedef std::variant<EnterPark, ExitPark, EntryPermit, Bill> RegisterMessageContent;
+using RegisterMessageContent = std::variant<EnterPark, ExitPark, EntryPermit, Bill>;
 
 struct RegisterMQMessage {
     int senderPID;
