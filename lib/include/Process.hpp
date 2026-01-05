@@ -1,6 +1,5 @@
 #pragma once
 #include "MessageQueue.hpp"
-#include "MessageTypes/MainMQ.hpp"
 #include "SemaphoreArray.hpp"
 #include "SharedMemory.hpp"
 #include "SimulationData.hpp"
@@ -19,7 +18,6 @@ public:
 
     std::shared_ptr<SemaphoreArray> GetSemaphoreArray();
     std::shared_ptr<SharedMemory<SimulationData>> GetSharedMemory();
-    std::shared_ptr<MessageQueue<MainMQMessage>> GetMainMessageQueue();
 
 protected:
     virtual void pInitImpl() = 0;
@@ -27,5 +25,4 @@ protected:
 
     std::shared_ptr<SemaphoreArray> m_semaphoreArray;
     std::shared_ptr<SharedMemory<SimulationData>> m_sharedMemory;
-    MainMessageQueue m_messageQueue;
 };
