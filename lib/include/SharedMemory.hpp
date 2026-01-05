@@ -77,15 +77,17 @@ private:
             perror("ftok (shmget) error");
             throw std::runtime_error("Couldn't generate shared memory key!");
         }
-        if ( (m_memData.ID = shmget(m_memData.Key, sizeof(T), IPC_CREAT | (create ? IPC_EXCL : 0) | 0666)) == -1 ) {
+        if ( (m_memData.ID = shmget(m_memData.Key, sizeof(T), (create ? IPC_CREAT | IPC_EXCL : 0) | 0666)) == -1 ) {
             perror("shmget error");
+            if (errno == ENOENT)
+                return false;
             throw std::runtime_error("Couldn't allocate shared memory!");
         }
         
         m_isOwner = create;
 
         // attach pointer
-        if (!(m_memPtr = (T*)shmat(m_memData.ID, nullptr, IPC_CREAT | 0666))) {
+        if (!(m_memPtr = (T*)shmat(m_memData.ID, nullptr, 0))) {
             perror("shmat error");
             throw std::runtime_error("Couldn't attach shared memory!");
         }
