@@ -8,6 +8,7 @@ public:
     static MainProc& Get();
     void Run();
 
+    void HandleSigint();
 protected:
     void pInitImpl() override;
     void pCloseImpl() override;
