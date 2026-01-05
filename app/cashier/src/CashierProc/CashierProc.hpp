@@ -1,7 +1,7 @@
 #pragma once
 #include <sys/types.h>
 #include <sys/wait.h>
-#include "Messages.hpp"
+#include "MessageTypes/RegisterMQ.hpp"
 #include "Process.hpp"
 #include "PredefinedMQ.hpp"
 

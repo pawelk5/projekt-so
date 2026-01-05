@@ -1,5 +1,4 @@
 #include "Process.hpp"
-#include "Messages.hpp"
 #include <exception>
 #include <memory>
 #include <stdexcept>
@@ -53,6 +52,6 @@ std::shared_ptr<SharedMemory<SimulationData>> Process::GetSharedMemory() {
     return m_sharedMemory;
 }
 
-std::shared_ptr<MessageQueue<MainMQMessage>> Process::GetMainMessageQueue() {
+MainMessageQueue Process::GetMainMessageQueue() {
     return m_messageQueue;
 }

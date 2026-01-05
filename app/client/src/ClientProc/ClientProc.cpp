@@ -1,5 +1,5 @@
 #include "ClientProc.hpp"
-#include "Messages.hpp"
+#include "MessageTypes/RegisterMQ.hpp"
 #include "PredefinedMQ.hpp"
 #include <iostream>
 #include <unistd.h>
