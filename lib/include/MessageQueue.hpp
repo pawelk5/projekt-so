@@ -41,11 +41,13 @@ public:
         mqattr.mq_maxmsg = params.maxMsgCount;
 
         m_msqName = PARK_QUEUE_ID + params.msqName;
-        m_msqID = mq_open(m_msqName.c_str(), O_RDWR | O_CREAT | (params.create ? O_EXCL : 0),
+        m_msqID = mq_open(m_msqName.c_str(), O_RDWR | (params.create ? O_CREAT | O_EXCL : 0),
             0600, &mqattr);
         
         if (m_msqID == -1) {
             perror("mq_open error");
+            if (errno == ENOENT)
+                return false;
             throw std::runtime_error("Couldn't open message queue!");
         }
 

@@ -1,5 +1,6 @@
 #include "SemaphoreArray.hpp"
 #include "Utils.hpp"
+#include <cerrno>
 #include <cstdint>
 #include <cstdio>
 #include <memory>
@@ -44,8 +45,11 @@ bool SemaphoreArray::GetSemaphoreArray(const std::string& semPath, int semKey, u
         throw std::runtime_error("Couldn't generate semaphore array key!");
     }
 
-    if ((m_semData.ID = semget(m_semData.Key, nSems, IPC_CREAT | (create ? IPC_EXCL : 0) | 0666)) == -1) {
+    if ((m_semData.ID = semget(m_semData.Key, nSems, (create ? IPC_CREAT | IPC_EXCL : 0) | 0666)) == -1) {
         perror("semget error");
+        // semaphore array doesnt exist
+        if (errno == ENOENT)
+            return false;
         throw std::runtime_error("Couldn't create semaphore array key!");
     }
 
