@@ -16,6 +16,11 @@ public:
 
     Process(const Process&) = delete;
     Process& operator=(const Process&) = delete;
+
+    std::shared_ptr<SemaphoreArray> GetSemaphoreArray();
+    std::shared_ptr<SharedMemory<SimulationData>> GetSharedMemory();
+    std::shared_ptr<MessageQueue<MainMQMessage>> GetMainMessageQueue();
+
 protected:
     virtual void pInitImpl() = 0;
     virtual void pCloseImpl() = 0;
