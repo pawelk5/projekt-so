@@ -44,3 +44,15 @@ void Process::Close() {
     m_semaphoreArray = nullptr;
     m_messageQueue = nullptr;
 }
+
+std::shared_ptr<SemaphoreArray> Process::GetSemaphoreArray() {
+    return m_semaphoreArray;
+}
+
+std::shared_ptr<SharedMemory<SimulationData>> Process::GetSharedMemory() {
+    return m_sharedMemory;
+}
+
+std::shared_ptr<MessageQueue<MainMQMessage>> Process::GetMainMessageQueue() {
+    return m_messageQueue;
+}
