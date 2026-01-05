@@ -1,5 +1,7 @@
 #include "CashierProc.hpp"
+#include "MessageTypes/ClientMQ.hpp"
 #include "PredefinedMQ.hpp"
+#include <ctime>
 #include <iostream>
 
 CashierProc::CashierProc() { ; }
@@ -44,6 +46,32 @@ void CashierProc::pHandleRegisterMQ() {
     if (!registerMsg)
         return;
 
-    std::cout << "Kasa otrzymala wiadomosc od " << registerMsg->senderPID << std::endl;
-    std::cout << "Typ wiadomosci: " << (int)registerMsg->mType << std::endl;
+    auto replyPID = registerMsg->senderPID;
+
+    try {
+        switch (registerMsg->mType) {
+        case RegisterMessageType::ENTER_PARK:
+            pHandleEnterPark(replyPID, std::get<EnterPark>(registerMsg->content));
+            break;
+
+        case RegisterMessageType::EXIT_PARK:
+            break;
+        
+        default:
+            std::cerr << "Zly typ wiadomosci!" << std::endl;
+        }
+    } catch (std::bad_variant_access variant_error) {
+        std::cerr << "Zla zawartosc wiadomosci!\n" << variant_error.what() << std::endl;
+    }
+}
+
+void CashierProc::pHandleEnterPark(pid_t replyPID, EnterPark msg) {
+    auto replyMQ = GetClientMQ(replyPID);
+
+    ClientMQMessage replyMsg;
+    replyMsg.senderPID = getpid();
+    replyMsg.mType = ClientMessageType::ENTRY_PERMIT;
+    replyMsg.content = EntryPermit{ .allowed = false };
+
+    replyMQ->SendMessage(replyMsg);
 }

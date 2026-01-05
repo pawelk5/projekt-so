@@ -14,25 +14,15 @@ struct ExitPark {
     int childTID;
 };
 
-struct EntryPermit {
-    bool allowed;
-};
-
-struct Bill {
-    float price;
-};
-
 enum class RegisterMessageType : int {
     ENTER_PARK,
-    EXIT_PARK,
-    ENTRY_PERMIT,
-    BILL
+    EXIT_PARK
 };
 
-using RegisterMessageContent = std::variant<EnterPark, ExitPark, EntryPermit, Bill>;
+using RegisterMessageContent = std::variant<EnterPark, ExitPark>;
 
 struct RegisterMQMessage {
-    int senderPID;
+    pid_t senderPID;
     RegisterMessageType mType;
     
     RegisterMessageContent content;
