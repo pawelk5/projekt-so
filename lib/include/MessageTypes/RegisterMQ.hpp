@@ -1,25 +1,9 @@
 #pragma once
-#include <cstdint>
 #include <variant>
-
-enum class MainMQMessageType : int {
-    END_SIMULATION
-};
-
-/// MAIN QUEUE
-struct EndSimulation {};
-
-using MainMQMessageContent = std::variant<EndSimulation>;
-
-struct MainMQMessage {
-    int senderPID;
-    MainMQMessageType mType;
-
-    MainMQMessageContent content;
-};
+#include <memory>
+#include "MessageQueue.hpp"
 
 
-/// CASHIER
 struct EnterPark {
     bool hasChild;
     int childTID;
@@ -54,3 +38,4 @@ struct RegisterMQMessage {
     RegisterMessageContent content;
 };
 
+using RegisterMQ = std::shared_ptr<MessageQueue<RegisterMQMessage>>;

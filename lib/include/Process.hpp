@@ -1,6 +1,6 @@
 #pragma once
 #include "MessageQueue.hpp"
-#include "Messages.hpp"
+#include "MessageTypes/MainMQ.hpp"
 #include "SemaphoreArray.hpp"
 #include "SharedMemory.hpp"
 #include "SimulationData.hpp"
@@ -27,5 +27,5 @@ protected:
 
     std::shared_ptr<SemaphoreArray> m_semaphoreArray;
     std::shared_ptr<SharedMemory<SimulationData>> m_sharedMemory;
-    std::shared_ptr<MessageQueue<MainMQMessage>> m_messageQueue;
+    MainMessageQueue m_messageQueue;
 };
