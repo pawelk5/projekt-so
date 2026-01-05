@@ -49,6 +49,8 @@ public:
             throw std::runtime_error("Couldn't open message queue!");
         }
 
+        m_owner = params.create;
+        
         return true;
     }
     

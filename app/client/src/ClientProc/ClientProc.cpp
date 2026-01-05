@@ -1,4 +1,5 @@
 #include "ClientProc.hpp"
+#include "MessageTypes/ClientMQ.hpp"
 #include "MessageTypes/RegisterMQ.hpp"
 #include "PredefinedMQ.hpp"
 #include <iostream>
@@ -20,12 +21,21 @@ void ClientProc::Run() {
     message.content = EnterPark{ .hasChild=false, .childTID=-1 };
 
     reg->SendMessage(message);
+
+    auto msg = m_clientQueue->RecieveMessage(10);
+    if (msg) {
+        if (msg->mType == ClientMessageType::ENTRY_PERMIT) {
+            auto reply = std::get<EntryPermit>(msg->content);
+            std::cout << "Klient " << getpid() << " otrzymal wiadomosc!\n"
+                << "ENTRY PERMIT: " << reply.allowed << "\n";
+        }
+    }
 }
 
 void ClientProc::pInitImpl() {
-    //std::cout << "Klient (" << getpid() << ") zaczyna dzialanie!" << std::endl;
+    m_clientQueue = GetClientMQ(getpid(), true);
 }
 
 void ClientProc::pCloseImpl() {
-    //std::cout << "Klient (" << getpid() << ") konczy dzialanie!" << std::endl;
+    m_clientQueue = nullptr;
 }

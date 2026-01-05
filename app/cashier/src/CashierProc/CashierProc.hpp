@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "MessageTypes/RegisterMQ.hpp"
@@ -19,7 +20,7 @@ protected:
 
 private:
     void pHandleRegisterMQ();
-
+    void pHandleEnterPark(pid_t replyPID, EnterPark msg);
 private:
     RegisterMQ m_registerQueue;
 };

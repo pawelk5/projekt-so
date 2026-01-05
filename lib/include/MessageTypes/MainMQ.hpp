@@ -13,7 +13,7 @@ enum class MainMQMessageType : int {
 using MainMQMessageContent = std::variant<EndSimulation>;
 
 struct MainMQMessage {
-    int senderPID;
+    pid_t senderPID;
     MainMQMessageType mType;
 
     MainMQMessageContent content;
