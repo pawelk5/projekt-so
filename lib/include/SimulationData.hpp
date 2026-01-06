@@ -10,6 +10,7 @@
 #define MAIN_SEMAPHORE_ARRAY_KEY 'B'
 
 #define ATTRACTION_COUNT 17
+#define RESTAURANT_INDEX 16
 #define PARK_SIZE 100
 
 enum class MainSemaphoreArray : uint16_t {
@@ -22,6 +23,5 @@ struct SimulationData {
     bool isOpen = 0;
     __pid_t managerPID = 0;
     __pid_t cashierPID = 0;
-    __pid_t restaurantPID = 0;
     std::array<__pid_t, ATTRACTION_COUNT> attractionPID = { 0 };
 };

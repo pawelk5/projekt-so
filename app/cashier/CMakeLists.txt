@@ -3,7 +3,7 @@ set(EXEC_NAME "park-cashier")
 set(LIBRARY_INCLUDE_PATH "${CMAKE_CURRENT_LIST_DIR}/include")
 
 add_executable(${EXEC_NAME}
-    "src/main.cpp"
+    "src/cashier.cpp"
     "src/CashierProc/CashierProc.cpp"
 )
 
