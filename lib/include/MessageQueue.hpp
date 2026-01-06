@@ -14,6 +14,9 @@
 #define PARK_QUEUE_ID "/park-"
 #define DEFAULT_MAX_MSQ_SIZE 10
 
+
+struct EmptyMessage { };
+
 struct MessageQueueParams {
     std::string msqName;
     uint16_t maxMsgCount;

@@ -21,6 +21,7 @@ protected:
 private:
     void pHandleRegisterMQ();
     void pHandleEnterPark(pid_t replyPID, EnterPark msg);
+    
 private:
     RegisterMQ m_registerQueue;
 };
