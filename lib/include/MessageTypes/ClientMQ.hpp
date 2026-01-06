@@ -14,10 +14,11 @@ struct Bill {
 
 enum class ClientMessageType : int {
     ENTRY_PERMIT,
-    BILL
+    BILL,
+    ACK
 };
 
-using ClientMessageContent = std::variant<EntryPermit, Bill>;
+using ClientMessageContent = std::variant<EntryPermit, Bill, EmptyMessage>;
 
 struct ClientMQMessage {
     pid_t senderPID;

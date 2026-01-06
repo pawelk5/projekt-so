@@ -2,7 +2,9 @@
 #include "MessageTypes/ClientMQ.hpp"
 #include "PredefinedMQ.hpp"
 #include <ctime>
+#include <exception>
 #include <iostream>
+#include <memory>
 
 CashierProc::CashierProc() { ; }
 CashierProc::~CashierProc() { ; }
@@ -66,12 +68,33 @@ void CashierProc::pHandleRegisterMQ() {
 }
 
 void CashierProc::pHandleEnterPark(pid_t replyPID, EnterPark msg) {
-    auto replyMQ = GetClientMQ(replyPID);
+    ClientMQ replyMQ;
+    try {
+        replyMQ = GetClientMQ(replyPID);
+        bool allowed = true;
 
-    ClientMQMessage replyMsg;
-    replyMsg.senderPID = getpid();
-    replyMsg.mType = ClientMessageType::ENTRY_PERMIT;
-    replyMsg.content = EntryPermit{ .allowed = false };
+        ClientMQMessage replyMsg;
+        replyMsg.senderPID = getpid();
+        replyMsg.mType = ClientMessageType::ENTRY_PERMIT;
+        replyMsg.content = EntryPermit{ .allowed = allowed };
 
-    replyMQ->SendMessage(replyMsg);
+        replyMQ->SendMessage(replyMsg);
+        // dont wait for ack message
+        if (!allowed)
+            return;
+
+        auto msg = replyMQ->RecieveMessage(1);
+        // no ack message
+        if (!msg)
+            return;
+
+        if (msg->mType == ClientMessageType::ACK) {
+            // CLIENT ENTERS PARK
+            std::cout << "klient " << msg->senderPID << " wchodzi do parku!" << std::endl;
+        }
+    } catch (const std::exception& e) {
+        replyMQ = nullptr;
+        if (errno == EBADF)
+        ;
+    }    
 }
