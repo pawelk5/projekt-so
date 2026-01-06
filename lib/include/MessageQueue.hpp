@@ -35,7 +35,7 @@ public:
             CloseMessageQueue();
 
         mq_attr mqattr;
-        mqattr.mq_flags = 0;
+        mqattr.mq_flags = O_RDWR;
         mqattr.mq_curmsgs = 0;
         mqattr.mq_msgsize = sizeof(MessageType);
         mqattr.mq_maxmsg = params.maxMsgCount;
