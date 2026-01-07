@@ -1,7 +1,6 @@
 #include "ClientProc.hpp"
 #include "MessageQueue.hpp"
 #include "MessageTypes/ClientMQ.hpp"
-#include "MessageTypes/RegisterMQ.hpp"
 #include "PredefinedMQ.hpp"
 #include <iostream>
 #include <unistd.h>
@@ -15,13 +14,14 @@ ClientProc& ClientProc::Get() {
 }
 
 void ClientProc::Run() {
-    auto reg = GetRegisterMQ(m_sharedMemory->GetData()->cashierPID);
+    m_registerMQ = GetRegisterMQ(m_sharedMemory->GetData()->cashierPID);
     RegisterMQMessage enterMsg;
     enterMsg.mType = RegisterMessageType::ENTER_PARK;
     enterMsg.senderPID = getpid();
     enterMsg.content = EnterPark{ .hasChild=false, .childTID=-1 };
 
-    reg->SendMessage(enterMsg);
+    m_registerMQ->SendMessage(enterMsg);
+    m_registerMQ = nullptr;
 
     auto msg = m_clientQueue->RecieveMessage(10);
     if (!msg)
@@ -49,4 +49,5 @@ void ClientProc::pInitImpl() {
 
 void ClientProc::pCloseImpl() {
     m_clientQueue = nullptr;
+    m_registerMQ = nullptr;
 }

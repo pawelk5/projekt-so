@@ -28,7 +28,6 @@ void ManagerProc::pInitImpl() {
 }
 
 void ManagerProc::pCloseImpl() {
-    sleep(1);
     m_sharedMemory->GetSemLock().Execute([this]() {
         if (m_sharedMemory->GetData()->managerPID == getpid())
             m_sharedMemory->GetData()->managerPID = 0;
