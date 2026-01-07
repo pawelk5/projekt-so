@@ -3,6 +3,8 @@
 #include <sys/wait.h>
 #include "Process.hpp"
 #include "MessageTypes/ClientMQ.hpp"
+#include "MessageTypes/RegisterMQ.hpp"
+
 class ClientProc : public Process {
 public:
     static ClientProc& Get();
@@ -17,4 +19,7 @@ protected:
 
 private:
     ClientMQ m_clientQueue;
+
+private:
+    RegisterMQ m_registerMQ;
 };

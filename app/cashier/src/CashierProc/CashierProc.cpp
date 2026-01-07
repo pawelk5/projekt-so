@@ -94,7 +94,7 @@ void CashierProc::pHandleEnterPark(pid_t replyPID, EnterPark msg) {
         }
     } catch (const std::exception& e) {
         replyMQ = nullptr;
-        if (errno == EBADF)
-        ;
+        // client left the queue before response
+        if (errno == EBADF) { ; }
     }    
 }
