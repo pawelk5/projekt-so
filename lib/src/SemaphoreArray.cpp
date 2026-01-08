@@ -70,7 +70,7 @@ void SemaphoreArray::pGenerateSemaphores(u_int16_t nSems) {
         ));
 }
 
-bool SemaphoreArray::SemSignal(int semID, int16_t value, bool semundo) {
+bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, bool semundo) {
     if (m_semData.ID == 0 || semID < 0 || semID >= m_semaphores.size())
         return false;
 
@@ -79,10 +79,16 @@ bool SemaphoreArray::SemSignal(int semID, int16_t value, bool semundo) {
     action.sem_num = semID;
     action.sem_flg = semundo ? SEM_UNDO : 0;
 
-    if (semop(m_semData.ID, &action, 1) == -1) {
-        perror("semop error");
-        return false;
-    }
+    bool leave = false;
+    do {
+        if (semop(m_semData.ID, &action, 1) == -1) {
+            if (errno == EINTR && retryOnInterrupt)
+                continue;
+            perror("semop error");
+            return false;
+        } 
+        leave = true;
+    } while (!leave);
     return true;
 }
 

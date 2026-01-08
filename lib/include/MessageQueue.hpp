@@ -10,7 +10,6 @@
 #include <mqueue.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <iostream>
 #define PARK_QUEUE_ID "/park-"
 #define DEFAULT_MAX_MSQ_SIZE 10
 
