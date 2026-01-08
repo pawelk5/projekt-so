@@ -10,6 +10,7 @@
 #include <mqueue.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <iostream>
 #define PARK_QUEUE_ID "/park-"
 #define DEFAULT_MAX_MSQ_SIZE 10
 
@@ -80,18 +81,20 @@ public:
         return true;
     }
 
-    bool SendMessage(const MessageType& msg, int priority = 0, int timeout = -1) {
+    bool SendMessage(const MessageType& msg, bool retryOnInterrupt = true, int priority = 0, int timeout = -1) {
         if (!m_msqID)
             return false;
 
         int result = 0;
-        if (timeout > 0) {
-            auto ts = CreateTimestamp(timeout);
-            result = mq_timedsend(m_msqID, (char*)(&msg), sizeof(msg), priority, &ts);
-        }
-        else {
-            result = mq_send(m_msqID, (char*)(&msg), sizeof(msg), priority);
-        }
+        do {
+            if (timeout > 0) {
+                auto ts = CreateTimestamp(timeout);
+                result = mq_timedsend(m_msqID, (char*)(&msg), sizeof(msg), priority, &ts);
+            }
+            else {
+                result = mq_send(m_msqID, (char*)(&msg), sizeof(msg), priority);
+            }
+        } while (retryOnInterrupt && result == -1 && errno == EINTR);
 
         if (result == -1) {
             if (errno == EAGAIN || errno == ETIMEDOUT)
@@ -105,19 +108,22 @@ public:
         return true;
     }
 
-    std::shared_ptr<MessageType> RecieveMessage(int timeout = -1) {
+    std::shared_ptr<MessageType> RecieveMessage(bool retryOnInterrupt = true, int timeout = -1) {
         if (!m_msqID)
             return nullptr;
 
         auto dst = std::make_shared<MessageType>();
         int result = 0;
-        if (timeout > 0) {
-            auto ts = CreateTimestamp(timeout);
-            result = mq_timedreceive(m_msqID, (char*)(&(*dst)), sizeof(MessageType), NULL, &ts);
-        }
-        else {
-            result = mq_receive(m_msqID, (char*)(&(*dst)), sizeof(MessageType), NULL);
-        }
+        
+        do {
+            if (timeout > 0) {
+                auto ts = CreateTimestamp(timeout);
+                result = mq_timedreceive(m_msqID, (char*)(&(*dst)), sizeof(MessageType), NULL, &ts);
+            }
+            else {
+                result = mq_receive(m_msqID, (char*)(&(*dst)), sizeof(MessageType), NULL);
+            }
+        } while (retryOnInterrupt && result == -1 && errno == EINTR);
 
         if (result == -1){
             if (errno == EAGAIN || errno == ETIMEDOUT)

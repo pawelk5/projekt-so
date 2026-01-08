@@ -23,7 +23,7 @@ void ClientProc::Run() {
     m_registerMQ->SendMessage(enterMsg);
     m_registerMQ = nullptr;
 
-    auto msg = m_clientQueue->RecieveMessage(10);
+    auto msg = m_clientQueue->RecieveMessage(true, 10);
     if (!msg)
         return;
 
