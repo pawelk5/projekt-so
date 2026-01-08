@@ -44,7 +44,7 @@ void CashierProc::pCloseImpl() {
 }
 
 void CashierProc::pHandleRegisterMQ() {
-    auto registerMsg = m_registerQueue->RecieveMessage(1);
+    auto registerMsg = m_registerQueue->RecieveMessage(true, 1);
     if (!registerMsg)
         return;
 
@@ -78,12 +78,12 @@ void CashierProc::pHandleEnterPark(pid_t replyPID, EnterPark msg) {
         replyMsg.mType = ClientMessageType::ENTRY_PERMIT;
         replyMsg.content = EntryPermit{ .allowed = allowed };
 
-        replyMQ->SendMessage(replyMsg);
+        replyMQ->SendMessage(replyMsg, true, 0, 1);
         // dont wait for ack message
         if (!allowed)
             return;
 
-        auto msg = replyMQ->RecieveMessage(1);
+        auto msg = replyMQ->RecieveMessage(true, 1);
         // no ack message
         if (!msg)
             return;
@@ -96,5 +96,6 @@ void CashierProc::pHandleEnterPark(pid_t replyPID, EnterPark msg) {
         replyMQ = nullptr;
         // client left the queue before response
         if (errno == EBADF) { ; }
-    }    
+        std::cout << "klient " << replyPID << " blad komunikacji!" << std::endl;
+    }
 }
