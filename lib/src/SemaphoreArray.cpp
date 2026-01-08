@@ -80,15 +80,20 @@ bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, 
     action.sem_flg = semundo ? SEM_UNDO : 0;
 
     bool leave = false;
-    do {
-        if (semop(m_semData.ID, &action, 1) == -1) {
-            if (errno == EINTR && retryOnInterrupt)
+    while (true) {
+        if (semop(m_semData.ID, &action, 1) != -1) 
+            return true;
+        
+        if (errno == EINTR) {
+            if (retryOnInterrupt)
                 continue;
-            perror("semop error");
+            
             return false;
-        } 
-        leave = true;
-    } while (!leave);
+        }
+        perror("semop error");
+        return false;
+    }
+
     return true;
 }
 

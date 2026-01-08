@@ -2,6 +2,7 @@
 #include "SimulationData.hpp"
 #include <iostream>
 #include <stdexcept>
+#include <sys/types.h>
 
 void SigintAction(int sig) {
     MainProc::Get().HandleSigint();
@@ -11,6 +12,8 @@ void MainProc::HandleSigint() {
     m_sharedMemory->GetSemLock().Execute([this]() {
         m_sharedMemory->GetData()->isOpen = false;
     });
+
+    pOpenAllLoopSemaphores();
 }
 
 MainProc::MainProc() { ; }
@@ -57,11 +60,12 @@ void MainProc::pInitImpl() {
         execl("./park-restaurant", "park-restaurant", NULL);
 
 
-    for (int i = 0; i < ATTRACTION_COUNT - 1; i++){
+    for (int i = 0; i < ATTRACTION_COUNT - 1; i++) {
         if (fork() == 0)
             execl("./park-attraction", "park-attraction", NULL);
     }
 
+    pOpenAllLoopSemaphores();
     sleep(1);
     for (int i = 0; i < 30; i++) {
         if (fork() == 0)
@@ -84,4 +88,11 @@ void MainProc::pCloseImpl() {
         for (int i = 0; i < ATTRACTION_COUNT; i++) 
             std::cout << i << ": " << m_sharedMemory->GetData()->attractionPID[i] << std::endl;
     });
+}
+
+void MainProc::pOpenAllLoopSemaphores() {
+    for (int id = (int)MainSemaphoreArray::ClientLoop; id <= (int)MainSemaphoreArray::RestaurantLoop; id++) {
+        auto semaphore = m_semaphoreArray->GetSemaphore(id);
+        semaphore->SetValue(1);
+    }
 }

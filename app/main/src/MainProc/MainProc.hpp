@@ -17,4 +17,6 @@ private:
     MainProc();
     ~MainProc();
 
+private:
+    void pOpenAllLoopSemaphores();
 };
