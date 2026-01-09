@@ -1,6 +1,5 @@
 add_subdirectory("main")
 add_subdirectory("attraction")
-add_subdirectory("manager")
 add_subdirectory("cashier")
 add_subdirectory("restaurant")
 add_subdirectory("client")

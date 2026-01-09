@@ -1,10 +1,12 @@
 #include "CashierProc.hpp"
 #include "MessageTypes/ClientMQ.hpp"
 #include "PredefinedMQ.hpp"
+#include <cerrno>
 #include <ctime>
 #include <exception>
 #include <iostream>
 #include <memory>
+#include <string>
 
 CashierProc::CashierProc() { ; }
 CashierProc::~CashierProc() { ; }
@@ -70,7 +72,6 @@ void CashierProc::pHandleRegisterMQ() {
 void CashierProc::pHandleEnterPark(pid_t replyPID, EnterPark msg) {
     ClientMQ replyMQ;
     try {
-        replyMQ = GetClientMQ(replyPID);
         bool allowed = true;
 
         ClientMQMessage replyMsg;
@@ -78,7 +79,27 @@ void CashierProc::pHandleEnterPark(pid_t replyPID, EnterPark msg) {
         replyMsg.mType = ClientMessageType::ENTRY_PERMIT;
         replyMsg.content = EntryPermit{ .allowed = allowed };
 
-        replyMQ->SendMessage(replyMsg, true, 0, 1);
+        replyMQ = GetClientMQ(replyPID, false, [this, replyPID] {
+            if (errno == ENOENT) {
+                pLogMessage("Klient " + std::to_string(replyPID) + " opuscil kolejke przed odebraniem wiadomosci!");
+                return true;
+            }
+            return false;
+        });
+        
+
+        bool result = replyMQ->SendMessage(replyMsg,
+            [this, replyPID] {
+                if (errno == EBADF) {
+                    pLogMessage("Klient " + std::to_string(replyPID) + " opuscil kolejke przed odebraniem wiadomosci!");
+                    return true;
+                }
+                return false;
+            },
+            true, 0, 1);
+
+        if (!result)
+            return;
         // dont wait for ack message
         if (!allowed)
             return;
@@ -90,12 +111,11 @@ void CashierProc::pHandleEnterPark(pid_t replyPID, EnterPark msg) {
 
         if (msg->mType == ClientMessageType::ACK) {
             // CLIENT ENTERS PARK
-            std::cout << "klient " << msg->senderPID << " wchodzi do parku!" << std::endl;
+            pLogMessage("klient " + std::to_string(replyPID) + " wchodzi do parku!");
         }
     } catch (const std::exception& e) {
         replyMQ = nullptr;
         // client left the queue before response
-        if (errno == EBADF) { ; }
-        std::cout << "klient " << replyPID << " blad komunikacji!" << std::endl;
+        pLogMessage("Przy obsludze klienta " + std::to_string(replyPID) + " nastapil blad w komunikacji!");
     }
 }

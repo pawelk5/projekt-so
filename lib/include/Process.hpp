@@ -22,7 +22,11 @@ public:
 protected:
     virtual void pInitImpl() = 0;
     virtual void pCloseImpl() = 0;
+    void pLogMessage(const std::string& message, bool backupLogToStdout = true, bool endWorkMessage = false);
 
     std::shared_ptr<SemaphoreArray> m_semaphoreArray;
     std::shared_ptr<SharedMemory<SimulationData>> m_sharedMemory;
+
+private:
+    SemaphoreArray::Semaphore m_loggerSemaphore;
 };

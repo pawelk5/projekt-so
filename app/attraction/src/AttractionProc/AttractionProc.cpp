@@ -6,22 +6,22 @@
 static volatile bool paused = false;
 
 void SigUsr1(int sig) {
-    std::cout << "ZAMYKANIE ATRAKCJI!" << std::endl;
     paused = true;
     AttractionProc::Get().CloseAttraction();
 }
 
 void SigUsr2(int sig) {
-    std::cout << "OTWIERANIE ATRAKCJI!" << std::endl;
     paused = false;
     AttractionProc::Get().OpenAttraction();
 }
 
 void AttractionProc::CloseAttraction() {
+    pLogMessage("Zamykanie atrakcji " + std::to_string(m_attractionID) + "!");
     m_attractionSemaphore->SetValue(0);
 }
 
 void AttractionProc::OpenAttraction() {
+    pLogMessage("Otwieranie atrakcji " + std::to_string(m_attractionID) + "!");
     m_attractionSemaphore->SetValue(1);
 }
 

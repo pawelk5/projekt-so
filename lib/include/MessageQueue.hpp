@@ -3,6 +3,7 @@
 #include <cerrno>
 #include <cstdint>
 #include <cstdio>
+#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <sys/types.h>
@@ -10,7 +11,7 @@
 #include <mqueue.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <iostream>
+
 #define PARK_QUEUE_ID "/park-"
 #define DEFAULT_MAX_MSQ_SIZE 10
 
@@ -33,7 +34,7 @@ public:
 
     ~MessageQueue() { CloseMessageQueue(); }
    
-    bool OpenMessageQueue(const MessageQueueParams& params) {
+    bool OpenMessageQueue(const MessageQueueParams& params, const std::function<bool()>& errorHandler) {
         if (m_msqID >= 0)
             CloseMessageQueue();
 
@@ -48,15 +49,19 @@ public:
             0600, &mqattr);
         
         if (m_msqID == -1) {
-            perror("mq_open error");
-            if (errno == ENOENT)
+            if (errorHandler())
                 return false;
+            perror("mq_open error");
             throw std::runtime_error("Couldn't open message queue!");
         }
 
         m_owner = params.create;
         
         return true;
+    }
+
+    bool OpenMessageQueue(const MessageQueueParams& params) {
+        return OpenMessageQueue(params, [] { return false; });
     }
     
     bool CloseMessageQueue() {
@@ -81,7 +86,7 @@ public:
         return true;
     }
 
-    bool SendMessage(const MessageType& msg, bool retryOnInterrupt = true, int priority = 0, int timeout = -1) {
+    bool SendMessage(const MessageType& msg, const std::function<bool()>& errorHandler, bool retryOnInterrupt = true, int priority = 0, int timeout = -1) {
         if (!m_msqID)
             return false;
 
@@ -96,16 +101,23 @@ public:
             }
         } while (retryOnInterrupt && result == -1 && errno == EINTR);
 
-        if (result == -1) {
-            if (errno == EAGAIN || errno == ETIMEDOUT)
-                return false;
-            else {
-                perror("mq_send/mq_timedsend error");
-                throw std::runtime_error("Couldn't send message!");
-            }
-        }
+        if (result != -1) 
+            return true;
 
-        return true;
+        if (errno == EAGAIN || errno == ETIMEDOUT)
+            return false;
+
+        if (errorHandler())
+            return false;
+
+        perror("mq_send/mq_timedsend error");
+        throw std::runtime_error("Couldn't send message!");
+
+        return false;
+    }
+
+    bool SendMessage(const MessageType& msg, bool retryOnInterrupt = true, int priority = 0, int timeout = -1) {
+        return SendMessage(msg, [] { return false; }, retryOnInterrupt, priority, timeout);
     }
 
     std::shared_ptr<MessageType> RecieveMessage(bool retryOnInterrupt = true, int timeout = -1) {
