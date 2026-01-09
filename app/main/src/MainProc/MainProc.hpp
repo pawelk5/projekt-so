@@ -19,4 +19,7 @@ private:
 
 private:
     void pOpenAllLoopSemaphores();
+
+private:
+    pthread_t m_loggerThread;
 };

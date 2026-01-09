@@ -1,8 +1,17 @@
 #include "MainProc.hpp"
+#include "LoggerService/LoggerService.hpp"
 #include "SimulationData.hpp"
+#include "Utils.hpp"
+#include <fcntl.h>
 #include <iostream>
+#include <pthread.h>
 #include <stdexcept>
 #include <sys/types.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+extern int g_loggerStatus;
+sem_t g_loggerInitSem;
 
 void SigintAction(int sig) {
     MainProc::Get().HandleSigint();
@@ -44,14 +53,20 @@ void MainProc::pInitImpl() {
         throw std::runtime_error("Couldn't set up sigterm handler!");
     }
 
+    sem_init(&g_loggerInitSem, 0, 0);
+    pthread_create(&m_loggerThread, nullptr, LoggerThread, nullptr);
+    sem_wait(&g_loggerInitSem);
+    sem_destroy(&g_loggerInitSem);
+
+    if (g_loggerStatus < 1)
+        throw std::runtime_error("Couldn't create logger thread!");
+
 
     m_sharedMemory->GetSemLock().Execute([this] {
         m_sharedMemory->GetData()->isOpen = true;
         m_sharedMemory->GetData()->parkSize = PARK_SIZE;
+        m_sharedMemory->GetData()->mainPID = getpid();
     });
-
-    if (fork() == 0)
-        execl("./park-manager", "park-manager", NULL);
 
     if (fork() == 0)
         execl("./park-cashier", "park-cashier", NULL);
@@ -80,14 +95,8 @@ void MainProc::pCloseImpl() {
 
     while(wait(NULL) > 0) { ; }
 
-    m_sharedMemory->GetSemLock().Execute([this]() {
-        std::cout << m_sharedMemory->GetData()->managerPID << std::endl;
-        std::cout << m_sharedMemory->GetData()->cashierPID << std::endl;
-
-        std::cout << "Attractions: " << std::endl;
-        for (int i = 0; i < ATTRACTION_COUNT; i++) 
-            std::cout << i << ": " << m_sharedMemory->GetData()->attractionPID[i] << std::endl;
-    });
+    pLogMessage("", false, true);
+    pthread_join(m_loggerThread, nullptr);
 }
 
 void MainProc::pOpenAllLoopSemaphores() {
