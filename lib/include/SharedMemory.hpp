@@ -27,7 +27,7 @@ public:
     }
     ~SharedMemory() { pDetachMemory(); }
 
-    bool AttachMemory(const std::string& shmPath, int shmKey, SemaphoreArray::Semaphore shmSemaphore = nullptr, bool create = false) {
+    bool AttachMemory(const std::string& shmPath, int shmKey, Semaphore shmSemaphore = nullptr, bool create = false) {
         return pAttachMemory(shmPath, shmKey, shmSemaphore, create);
     }
     
@@ -35,7 +35,7 @@ public:
 
     SemaphoreLock GetSemLock() { return SemaphoreLock(m_sem); }
 
-    SemaphoreArray::Semaphore GetSemaphore() { return m_sem; }
+    Semaphore GetSemaphore() { return m_sem; }
     T* const GetData() { return m_memPtr; }
 
 private:
@@ -65,7 +65,7 @@ private:
         m_memPtr = nullptr;
     }
 
-    bool pAttachMemory(const std::string& shmPath, int shmKey, SemaphoreArray::Semaphore shmSemaphore, bool create) {
+    bool pAttachMemory(const std::string& shmPath, int shmKey, Semaphore shmSemaphore, bool create) {
         if (create)
             if (!CreateEmptyFile(shmPath))
                 throw std::runtime_error("Couldn't create shared memory file!");
@@ -104,5 +104,5 @@ private:
     SharedMemoryData m_memData;
     bool m_isOwner;
 
-    SemaphoreArray::Semaphore m_sem;
+    Semaphore m_sem;
 };

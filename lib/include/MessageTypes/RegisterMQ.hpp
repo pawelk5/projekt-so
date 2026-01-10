@@ -4,14 +4,23 @@
 #include "MessageQueue.hpp"
 
 
-struct EnterPark {
-    bool hasChild;
-    int childTID;
+enum class TicketType : int {
+    H2,
+    H4,
+    H6,
+    H24,    
+    VIP
 };
 
-struct ExitPark {
+struct EnterPark {
     bool hasChild;
-    int childTID;
+    bool isVip;
+
+    TicketType ticketType;
+};
+
+struct ExitPark { 
+    bool visitedRestaurant;
 };
 
 enum class RegisterMessageType : int {

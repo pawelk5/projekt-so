@@ -82,7 +82,7 @@ void MainProc::pInitImpl() {
 
     pOpenAllLoopSemaphores();
     sleep(1);
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 500; i++) {
         if (fork() == 0)
             execl("./park-client", "park-client", NULL);
     }
@@ -100,8 +100,8 @@ void MainProc::pCloseImpl() {
 }
 
 void MainProc::pOpenAllLoopSemaphores() {
-    for (int id = (int)MainSemaphoreArray::ClientLoop; id <= (int)MainSemaphoreArray::RestaurantLoop; id++) {
+    for (int id = (int)MainSemaphoreArray::CashierLoop; id <= (int)MainSemaphoreArray::RestaurantLoop; id++) {
         auto semaphore = m_semaphoreArray->GetSemaphore(id);
-        semaphore->SetValue(1);
+        semaphore->Signal();
     }
 }

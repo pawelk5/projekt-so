@@ -17,8 +17,19 @@ protected:
     void pInitImpl() override;
     void pCloseImpl() override;
 
+    void pLeavePark();
+    bool pEnterPark();
+
+    bool pCreateReplyMQ();
 private:
     ClientMQ m_clientQueue;
+    bool m_enteredPark;
+
+    struct ClientData {
+        bool hasChild;
+        bool isVip;
+        TicketType ticketType;
+    } m_data;
 
 private:
     RegisterMQ m_registerMQ;

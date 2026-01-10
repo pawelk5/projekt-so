@@ -112,6 +112,6 @@ int SemaphoreArray::SemGetValue(int semID) {
     return value;
 }
 
-SemaphoreArray::Semaphore SemaphoreArray::GetSemaphore(u_int16_t semID) {
+Semaphore SemaphoreArray::GetSemaphore(u_int16_t semID) {
     return semID >= m_semaphores.size() ? nullptr : m_semaphores.at(semID);
 }

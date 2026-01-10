@@ -4,7 +4,7 @@
 #include <sys/types.h>
 
 struct SemaphoreLock {
-    explicit SemaphoreLock(SemaphoreArray::Semaphore& sem, uint16_t val = 1)
+    explicit SemaphoreLock(Semaphore& sem, uint16_t val = 1)
         :m_sem(sem), m_val(val), m_released(false)
     {
         m_sem->Wait(m_val, true, true);
@@ -35,7 +35,7 @@ struct SemaphoreLock {
     SemaphoreLock(const SemaphoreLock&) = delete;
     SemaphoreLock& operator= (const SemaphoreLock&) = delete;
 private:
-    SemaphoreArray::Semaphore& m_sem;
+    Semaphore& m_sem;
     uint16_t m_val;
 
     bool m_released;

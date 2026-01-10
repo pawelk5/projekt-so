@@ -4,12 +4,12 @@
 #include "MessageTypes/LoggerMQ.hpp"
 #include <string>
 
-RegisterMQ GetRegisterMQ(pid_t cashierPID, bool cashier, const std::function<bool()>& errorHandler) {
+RegisterMQ GetRegisterMQ(pid_t cashierPID, bool cashier, const std::function<bool()>& errorHandler, bool blocking) {
     RegisterMQ t_mq = std::make_shared<MessageQueue<RegisterMQMessage>>();
     MessageQueueParams t_params;
-    t_params.blocking = false;
+    t_params.blocking = blocking;
     t_params.create = cashier;
-    t_params.msqName = std::to_string(cashierPID) + "-cashier";
+    t_params.msqName = std::to_string(cashierPID) + "-register";
     t_params.maxMsgCount = DEFAULT_MAX_MSQ_SIZE;
 
     if (!t_mq->OpenMessageQueue(t_params, errorHandler))
