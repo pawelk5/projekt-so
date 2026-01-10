@@ -58,31 +58,16 @@ void ClientProc::pLeavePark() {
     
     m_enteredPark = false;
 
-    RegisterMQMessage enterMsg;
-    enterMsg.mType = RegisterMessageType::EXIT_PARK;
-    enterMsg.senderPID = getpid();
-    enterMsg.content = ExitPark{ .visitedRestaurant=false };
+    RegisterMQMessage exitMsg;
+    exitMsg.mType = RegisterMessageType::EXIT_PARK;
+    exitMsg.senderPID = getpid();
+    exitMsg.content = ExitPark{ .visitedRestaurant=false };
 
     /// leaving is BLOCKING
-    m_registerMQ = GetRegisterMQ(m_sharedMemory->GetData()->cashierPID, false, [this] {
-        if (errno == ENOENT) {
-            pLogMessage("Kasa zostala zamknieta przed wyslaniem wiadomosci!");
-            return true;
-        }
-        return false;
-    }, true);
-
-    if (!m_registerMQ)
+    if (!pGetRegisterMQ(true))
         return;
 
-    bool result = m_registerMQ->SendMessage(enterMsg, [this] {
-        if (errno == EBADF) {
-            pLogMessage("Kasa zostala zamknieta przed wyslaniem wiadomosci!");
-            return true;
-        }
-        
-        return false;
-    }, true);
+    bool result = pSendRegisterMQMessage(exitMsg, false);
     m_registerMQ = nullptr;
     
     m_semaphoreArray->GetSemaphore((u_int16_t)MainSemaphoreArray::CashierLoop)->Signal();
@@ -117,43 +102,26 @@ bool ClientProc::pEnterPark() {
     enterMsg.senderPID = getpid();
     enterMsg.content = EnterPark{ .hasChild=m_data.hasChild, .isVip=m_data.isVip, .ticketType=m_data.ticketType };
 
-    m_registerMQ = GetRegisterMQ(m_sharedMemory->GetData()->cashierPID, false, [this] {
-        if (errno == ENOENT) {
-            pLogMessage("BLAD: Kasa zostala zamknieta przed wyslaniem wiadomosci!");
-            return true;
-        }
-
+    if (!pGetRegisterMQ(false))
         return false;
-    });
 
-    bool result = m_registerMQ->SendMessage(enterMsg, [this] {
-        if (errno == EBADF) {
-            pLogMessage("BLAD: Kasa zostala zamknieta przed wyslaniem wiadomosci!");
-            return true;
-        }
+    if (!pSendRegisterMQMessage(enterMsg, true))
         return false;
-    }, true, 0, 10);
-    m_registerMQ = nullptr;
+    
+    m_registerMQ = nullptr; 
     m_semaphoreArray->GetSemaphore((u_int16_t)MainSemaphoreArray::CashierLoop)->Signal();
 
-    if (!result) {
-        return false;
-    }
-
     auto msg = m_clientQueue->RecieveMessage(true, 10);
-    if (!msg) {
+    if (!msg)
+        return false;
 
+    if (msg->mType != ClientMessageType::ENTRY_PERMIT)
         return false;
-    }
-    if (msg->mType != ClientMessageType::ENTRY_PERMIT) {
-        return false;
-    }
 
     auto reply = std::get<EntryPermit>(msg->content);
 
-    if (!reply.allowed) {
+    if (!reply.allowed)
         return false;
-    }
 
     ClientMQMessage ackMsg;
     ackMsg.content = EmptyMessage{};
@@ -172,4 +140,27 @@ bool ClientProc::pCreateReplyMQ() {
     });
 
     return m_clientQueue != nullptr;
+}
+
+bool ClientProc::pGetRegisterMQ(bool blocking) {
+    m_registerMQ = GetRegisterMQ(m_sharedMemory->GetData()->cashierPID, false, [this] {
+        if (errno == ENOENT) {
+            pLogMessage("BLAD: Kasa zostala zamknieta przed wyslaniem wiadomosci!");
+            return true;
+        }
+
+        return false;
+    }, blocking);
+
+    return m_registerMQ != nullptr;
+}
+
+bool ClientProc::pSendRegisterMQMessage(const RegisterMQMessage& msg, bool timeout) {
+    return m_registerMQ->SendMessage(msg, [this] {
+        if (errno == EBADF) {
+            pLogMessage("BLAD: Kasa zostala zamknieta przed wyslaniem wiadomosci!");
+            return true;
+        }
+        return false;
+    }, true, 0, timeout ? 10 : -1);    
 }
