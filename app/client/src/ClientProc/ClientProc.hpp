@@ -21,6 +21,9 @@ protected:
     bool pEnterPark();
 
     bool pCreateReplyMQ();
+    bool pGetRegisterMQ(bool blocking);
+    bool pSendRegisterMQMessage(const RegisterMQMessage& msg, bool timeout);
+
 private:
     ClientMQ m_clientQueue;
     bool m_enteredPark;
