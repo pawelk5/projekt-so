@@ -15,7 +15,7 @@
 
 enum class MainSemaphoreArray : uint16_t {
     MainSharedMemorySemaphore,
-    ClientLoop,
+    CashierLoop,
     Attraction1Loop,
     RestaurantLoop = 17,
     Count

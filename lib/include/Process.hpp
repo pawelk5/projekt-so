@@ -28,5 +28,5 @@ protected:
     std::shared_ptr<SharedMemory<SimulationData>> m_sharedMemory;
 
 private:
-    SemaphoreArray::Semaphore m_loggerSemaphore;
+    Semaphore m_loggerSemaphore;
 };

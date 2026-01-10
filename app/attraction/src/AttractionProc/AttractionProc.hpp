@@ -25,5 +25,5 @@ private:
 
 private:
     int m_attractionID;
-    SemaphoreArray::Semaphore m_attractionSemaphore;
+    Semaphore m_attractionSemaphore;
 };

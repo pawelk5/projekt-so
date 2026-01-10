@@ -22,8 +22,6 @@ public:
         int m_semID;
     };
     friend SemaphoreStruct;
-    // Semaphore is a shared ptr to a semaphore struct !! CAN BE NULL
-    using Semaphore = std::shared_ptr<SemaphoreStruct>;
 
 public:
     SemaphoreArray();
@@ -32,7 +30,7 @@ public:
     bool GetSemaphoreArray(const std::string& semPath, int semKey, u_int16_t nSems, bool create = false);
     bool DeleteSemaphoreArray();
 
-    Semaphore GetSemaphore(u_int16_t semID);
+    std::shared_ptr<SemaphoreStruct> GetSemaphore(u_int16_t semID);
 
 protected:
     bool SemSignal(int semID, int16_t value, bool retryOnInterrupt, bool semundo);
@@ -45,7 +43,7 @@ private:
 
 private:
     bool m_isOwner;
-    std::vector<Semaphore> m_semaphores;
+    std::vector<std::shared_ptr<SemaphoreStruct>> m_semaphores;
 
     struct SemData {
         key_t Key;
@@ -56,3 +54,6 @@ private:
 
     SemData m_semData;
 };
+
+// Semaphore is a shared ptr to a semaphore struct !! CAN BE NULL
+using Semaphore = std::shared_ptr<SemaphoreArray::SemaphoreStruct>;
