@@ -17,11 +17,11 @@ void* LoggerThread(void* arg) {
     try {
         mq = GetLoggerMQ(getpid(), true);
 
-        sem_post(&g_loggerInitSem);
         g_loggerStatus = 1;
-    } catch (const std::exception& e) {
         sem_post(&g_loggerInitSem);
+    } catch (const std::exception& e) {
         g_loggerStatus = -1;
+        sem_post(&g_loggerInitSem);
         mq = nullptr;
         std::cerr << "Thread exception: " << e.what() << ", errno " << errno << std::endl;
         return nullptr;
