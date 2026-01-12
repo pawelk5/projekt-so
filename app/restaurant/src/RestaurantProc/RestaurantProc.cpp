@@ -59,7 +59,7 @@ void RestaurantProc::pInitImpl() {
         m_sharedMemory->GetData()->attractionPID[RESTAURANT_INDEX] = getpid();
     });
 
-    m_restaurantSemaphore = m_semaphoreArray->GetSemaphore((u_int16_t)MainSemaphoreArray::RestaurantLoop);
+    m_restaurantSemaphore = m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::RestaurantLoop);
 }
 
 void RestaurantProc::pCloseImpl() {

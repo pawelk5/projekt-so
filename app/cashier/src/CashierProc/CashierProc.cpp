@@ -19,7 +19,7 @@ CashierProc& CashierProc::Get() {
 }
 
 void CashierProc::Run() {
-    while (m_sharedMemory->GetData()->isOpen) {
+    while (m_sharedMemory->GetData()->isOpen || m_clients.size() > 0) {
         m_loopSemaphore->Wait(1, true);
         pHandleRegisterMQ();
 
@@ -51,7 +51,7 @@ void CashierProc::pInitImpl() {
     });
 
     m_registerQueue = GetRegisterMQ(m_sharedMemory->GetData()->cashierPID, true);
-    m_loopSemaphore = m_semaphoreArray->GetSemaphore((u_int16_t) MainSemaphoreArray::CashierLoop);
+    m_loopSemaphore = m_semaphoreArray->GetSemaphore((uint16_t) MainSemaphoreArray::CashierLoop);
     m_clientCounter = 0;
 }
 
@@ -66,7 +66,7 @@ void CashierProc::pCloseImpl() {
 }
 
 void CashierProc::pHandleRegisterMQ() {
-    auto registerMsg = m_registerQueue->RecieveMessage(true, 1);
+    auto registerMsg = m_registerQueue->ReceiveMessage(true, 1);
     if (!registerMsg)
         return;
 
@@ -125,7 +125,7 @@ void CashierProc::pHandleExitPark(const RegisterMQMessage& message) {
         if (!pSendReply(replyPID, replyMsg))
             throw std::runtime_error("Nie mozna bylo wyslac odpowiedzi do klienta!");
 
-        auto msg = m_replyMQ->RecieveMessage(true, 1);
+        auto msg = m_replyMQ->ReceiveMessage(true, 1);
         // no ack message
         if (!msg)
             throw std::runtime_error("Klient nie wyslal potwierdzenia rachunku!");
@@ -169,7 +169,7 @@ bool CashierProc::pRegisterClient(const RegisterMQMessage& message) {
         if (!allowed)
             return true;
 
-        auto msg = m_replyMQ->RecieveMessage(true, 1);
+        auto msg = m_replyMQ->ReceiveMessage(true, 1);
         // no ack message
         if (!msg)
             return true;

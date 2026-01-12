@@ -70,12 +70,12 @@ void ClientProc::pLeavePark() {
     bool result = pSendRegisterMQMessage(exitMsg, false);
     m_registerMQ = nullptr;
     
-    m_semaphoreArray->GetSemaphore((u_int16_t)MainSemaphoreArray::CashierLoop)->Signal();
+    m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::CashierLoop)->Signal();
 
     if (!result || !m_clientQueue)
         return;
 
-    auto msg = m_clientQueue->RecieveMessage(true, 10);
+    auto msg = m_clientQueue->ReceiveMessage(true, 10);
     if (!msg)
         return;
 
@@ -109,9 +109,9 @@ bool ClientProc::pEnterPark() {
         return false;
     
     m_registerMQ = nullptr; 
-    m_semaphoreArray->GetSemaphore((u_int16_t)MainSemaphoreArray::CashierLoop)->Signal();
+    m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::CashierLoop)->Signal();
 
-    auto msg = m_clientQueue->RecieveMessage(true, 10);
+    auto msg = m_clientQueue->ReceiveMessage(true, 10);
     if (!msg)
         return false;
 

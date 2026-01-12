@@ -6,9 +6,22 @@
 #include <unistd.h>
 #include "MessageTypes/LoggerMQ.hpp"
 
+/// Creates or truncates a file
+/// \param filepath path to the file
+/// \returns false on failure
 bool CreateEmptyFile(const std::string& filepath);
-timespec CreateTimestamp(int add);
 
+/// Creates timespec struct
+/// \param add number of seconds added to current time
+timespec CreateTimestamp(int add = 0);
+
+/// Creates timespec struct
+/// \param t seconds since Unix epoch
+timespec CreateTimestampT(time_t t = time(NULL));
+
+/// Converts string to fixed-size char array
+/// \tparam N size of output array
+/// \param str string to be converted
 template<int N>
 std::array<char, N> ToArray(const std::string& str) {
     std::array<char, N> array { 0 };
@@ -20,4 +33,8 @@ std::array<char, N> ToArray(const std::string& str) {
     return array;
 }
 
+/// Converts logger message struct to a formatted string
+/// Format: [time] (pid): <message>
+/// \param str string to be converted
+/// \returns formatted string
 std::string CreateLogMessage(const LoggerMQMessage& msg);

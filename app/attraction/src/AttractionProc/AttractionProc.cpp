@@ -56,7 +56,7 @@ void AttractionProc::pInitImpl() {
     });
 
     m_attractionSemaphore = m_semaphoreArray->GetSemaphore(
-        (u_int16_t) MainSemaphoreArray::Attraction1Loop + m_attractionID);
+        (uint16_t) MainSemaphoreArray::Attraction1Loop + m_attractionID);
 
 
     struct sigaction sa;
