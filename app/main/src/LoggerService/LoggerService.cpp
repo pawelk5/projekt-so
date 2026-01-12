@@ -35,7 +35,7 @@ void* LoggerThread(void* arg) {
         }
 
         while (true) {
-            auto msg = mq->RecieveMessage();
+            auto msg = mq->ReceiveMessage();
             if (msg->senderPID == -1)
                 break;
 

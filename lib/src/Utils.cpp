@@ -19,8 +19,12 @@ bool CreateEmptyFile(const std::string& filepath) {
     return true;
 }
 
-timespec CreateTimestamp(int add = 0) {
+timespec CreateTimestamp(int add) {
     return timespec{ .tv_sec = time(NULL) + add , .tv_nsec = 0 };
+}
+
+timespec CreateTimestampT(time_t t) {
+    return timespec{ .tv_sec = t , .tv_nsec = 0 };
 }
 
 std::string CreateLogMessage(const LoggerMQMessage& message) {

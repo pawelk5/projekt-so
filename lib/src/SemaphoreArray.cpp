@@ -29,7 +29,7 @@ bool SemaphoreArray::DeleteSemaphoreArray() {
     return true;
 }
 
-bool SemaphoreArray::GetSemaphoreArray(const std::string& semPath, int semKey, u_int16_t nSems, bool create) {
+bool SemaphoreArray::GetSemaphoreArray(const std::string& semPath, int semKey, uint16_t nSems, bool create) {
     if (nSems == 0)
         return false;
 
@@ -43,14 +43,13 @@ bool SemaphoreArray::GetSemaphoreArray(const std::string& semPath, int semKey, u
     if ((m_semData.Key = ftok(semPath.c_str(), semKey)) == -1) {
         perror("ftok (semget) error");
         throw std::runtime_error("Couldn't generate semaphore array key!");
+        return false;
     }
 
     if ((m_semData.ID = semget(m_semData.Key, nSems, (create ? IPC_CREAT | IPC_EXCL : 0) | 0666)) == -1) {
         perror("semget error");
-        // semaphore array doesnt exist
-        if (errno == ENOENT)
-            return false;
         throw std::runtime_error("Couldn't create semaphore array key!");
+        return false;
     }
 
     m_isOwner = create;
@@ -59,7 +58,7 @@ bool SemaphoreArray::GetSemaphoreArray(const std::string& semPath, int semKey, u
     return true;
 }
 
-void SemaphoreArray::pGenerateSemaphores(u_int16_t nSems) {
+void SemaphoreArray::pGenerateSemaphores(uint16_t nSems) {
     m_semaphores.clear();
     m_semaphores.reserve(nSems);
 
@@ -112,6 +111,6 @@ int SemaphoreArray::SemGetValue(int semID) {
     return value;
 }
 
-Semaphore SemaphoreArray::GetSemaphore(u_int16_t semID) {
+Semaphore SemaphoreArray::GetSemaphore(uint16_t semID) {
     return semID >= m_semaphores.size() ? nullptr : m_semaphores.at(semID);
 }
