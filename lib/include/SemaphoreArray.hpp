@@ -4,7 +4,8 @@
 #include <string>
 #include <vector>
 
-
+/// Semaphore array class
+/// Automatically handles detaching and removing the semaphore array
 class SemaphoreArray {
 public:
     /// Struct representation of a single semaphore

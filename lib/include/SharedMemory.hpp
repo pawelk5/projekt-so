@@ -8,7 +8,8 @@
 #include "SemaphoreLock.hpp"
 #include "Utils.hpp"
 
-// TODO: error detection
+/// Shared memory class template
+/// Automatically handles detaching and removing the shared memory
 template<class T>
 class SharedMemory {
 public:
@@ -27,15 +28,30 @@ public:
     }
     ~SharedMemory() { pDetachMemory(); }
 
+    /// Creates or attaches the shared memory
+    /// \param shmPath path of the shared memory file (used with ftok)
+    /// \param shmKey shared memory key
+    /// \param shmSemaphore semaphore for synchronizing read and write operations
+    /// \param create if true, shared memory object will be responsible for creating and removing the shared memory
+    /// \returns false on failure
+    /// \throws std::runtime_error if an error occurs
     bool AttachMemory(const std::string& shmPath, int shmKey, Semaphore shmSemaphore = nullptr, bool create = false) {
         return pAttachMemory(shmPath, shmKey, shmSemaphore, create);
     }
     
+    /// Detaches and removes the shared memory
+    /// \returns false on failure
+    /// \throws std::runtime_error if an error occurs
     bool DetachMemory() { return pDetachMemory(); }
 
+    /// Returns a semaphore lock object for synchronizing read and write operations
     SemaphoreLock GetSemLock() { return SemaphoreLock(m_sem); }
 
+    /// Returns semaphore used for synchronizing read and write operations
     Semaphore GetSemaphore() { return m_sem; }
+
+    /// Returns pointer to shared memory
+    /// \returns pointer to shared memory managed by this object
     T* const GetData() { return m_memPtr; }
 
 private:
@@ -43,8 +59,12 @@ private:
         if (!m_memPtr)
             return true;
 
-        int result = shmdt((void* const) m_memPtr);
-        // todo: check for errors ?
+        if (!shmdt((void* const) m_memPtr)) {
+            perror("shmdt error");
+            throw std::runtime_error("Couldn't detach shared memory!");
+            return false;
+        }
+
         m_memPtr = nullptr;
 
         // if the object created shared memory then it will automatically remove it when it detaches it
@@ -76,12 +96,12 @@ private:
         if ( (m_memData.Key = ftok(shmPath.c_str(), shmKey)) == -1 ){
             perror("ftok (shmget) error");
             throw std::runtime_error("Couldn't generate shared memory key!");
+            return false;
         }
         if ( (m_memData.ID = shmget(m_memData.Key, sizeof(T), (create ? IPC_CREAT | IPC_EXCL : 0) | 0666)) == -1 ) {
             perror("shmget error");
-            if (errno == ENOENT)
-                return false;
             throw std::runtime_error("Couldn't allocate shared memory!");
+            return false;
         }
         
         m_isOwner = create;
@@ -90,6 +110,7 @@ private:
         if (!(m_memPtr = (T*)shmat(m_memData.ID, nullptr, 0))) {
             perror("shmat error");
             throw std::runtime_error("Couldn't attach shared memory!");
+            return false;
         }
 
         m_sem = shmSemaphore;
