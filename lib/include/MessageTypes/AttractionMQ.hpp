@@ -4,12 +4,16 @@
 #include "MessageQueue.hpp"
 #include "SharedMessageTypes.hpp"
 
-
-enum class AttractionMessageType : int {
-    ENTRY_PERMIT
+struct EnterAttraction {
+    bool hasChild;
 };
 
-using AttractionMessageContent = EntryPermit;
+enum class AttractionMessageType : int {
+    ENTER_ATTRACTION,
+    EXIT_ATTRACTION
+};
+
+using AttractionMessageContent = std::variant<EnterAttraction, EmptyMessage>;
 
 struct AttractionMQMessage {
     pid_t senderPID;

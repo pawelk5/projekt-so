@@ -78,8 +78,8 @@ void AttractionProc::pInitImpl() {
         (uint16_t) MainSemaphoreArray::Attraction1Loop + m_attractionID);
 
     m_replyMQ = nullptr;
-    m_attractionQueue = GetAttractionMQ(getpid(), true);
-    if (!m_attractionQueue)
+    m_attractionMQ = GetAttractionMQ(getpid(), true);
+    if (!m_attractionMQ)
         throw std::runtime_error("Couldn't create attraction message queue!");
 }
 
@@ -107,7 +107,7 @@ void AttractionProc::pCloseImpl() {
                 m_sharedMemory->GetData()->attractionPID[GetAttractionID()] = 0;
         });
 
-    m_attractionQueue = nullptr;
+    m_attractionMQ = nullptr;
     m_replyMQ = nullptr;
 }
 

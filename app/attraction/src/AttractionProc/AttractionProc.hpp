@@ -30,6 +30,6 @@ private:
     int m_attractionID;
     Semaphore m_attractionSemaphore;
 
-    AttractionMQ m_attractionQueue;
+    AttractionMQ m_attractionMQ;
     ClientMQ m_replyMQ;
 };
