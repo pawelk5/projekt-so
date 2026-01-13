@@ -59,7 +59,7 @@ private:
         if (!m_memPtr)
             return true;
 
-        if (!shmdt((void* const) m_memPtr)) {
+        if (shmdt((void* const) m_memPtr) == -1) {
             perror("shmdt error");
             throw std::runtime_error("Couldn't detach shared memory!");
             return false;

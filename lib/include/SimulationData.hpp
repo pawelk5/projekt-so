@@ -2,16 +2,8 @@
 #include <array>
 #include <cstdint>
 #include <sys/types.h>
+#include "Config/Config.hpp"
 
-#define SHARED_MEMORY_PATH "/tmp/park_rozrywki_shm_main"
-#define SHARED_MEMORY_KEY 'A'
-
-#define MAIN_SEMAPHORE_ARRAY_PATH "/tmp/park_rozrywki_sem_main"
-#define MAIN_SEMAPHORE_ARRAY_KEY 'B'
-
-#define ATTRACTION_COUNT 17
-#define RESTAURANT_INDEX 16
-#define PARK_SIZE 100
 
 enum class MainSemaphoreArray : uint16_t {
     MainSharedMemorySemaphore,

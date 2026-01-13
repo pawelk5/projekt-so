@@ -1,7 +1,9 @@
 #include "AttractionProc.hpp"
+#include "PredefinedMQ.hpp"
 #include "SemaphoreLock.hpp"
 #include "SimulationData.hpp"
 #include <sys/types.h>
+#include <unistd.h>
 
 static volatile bool paused = false;
 
@@ -38,6 +40,23 @@ AttractionProc& AttractionProc::Get() {
 }
 
 void AttractionProc::pInitImpl() {
+    struct sigaction sa;
+    sa.sa_handler = SigUsr1;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    if (sigaction(SIGUSR1, &sa, NULL) == -1) {
+        perror("sigaction SIGUSR1");
+        throw std::runtime_error("Couldn't set up SIGUSR1 handler!");
+    }
+
+    sa.sa_handler = SigUsr2;
+
+    if (sigaction(SIGUSR2, &sa, NULL) == -1) {
+        perror("sigaction SIGUSR2");
+        throw std::runtime_error("Couldn't set up SIGUSR2 handler!");
+    }
+
     m_sharedMemory->GetSemLock().Execute([this]() {
         if (!m_sharedMemory->GetData()->isOpen)
             throw std::runtime_error("park is closed!");
@@ -58,23 +77,10 @@ void AttractionProc::pInitImpl() {
     m_attractionSemaphore = m_semaphoreArray->GetSemaphore(
         (uint16_t) MainSemaphoreArray::Attraction1Loop + m_attractionID);
 
-
-    struct sigaction sa;
-    sa.sa_handler = SigUsr1;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-
-    if (sigaction(SIGUSR1, &sa, NULL) == -1) {
-        perror("sigaction SIGUSR1");
-        throw std::runtime_error("Couldn't set up SIGUSR1 handler!");
-    }
-
-    sa.sa_handler = SigUsr2;
-
-    if (sigaction(SIGUSR2, &sa, NULL) == -1) {
-        perror("sigaction SIGUSR2");
-        throw std::runtime_error("Couldn't set up SIGUSR2 handler!");
-    }
+    m_replyMQ = nullptr;
+    m_attractionQueue = GetAttractionMQ(getpid(), true);
+    if (!m_attractionQueue)
+        throw std::runtime_error("Couldn't create attraction message queue!");
 }
 
 void AttractionProc::Run() {
@@ -100,6 +106,9 @@ void AttractionProc::pCloseImpl() {
             if (m_sharedMemory->GetData()->attractionPID[GetAttractionID()] == getpid()) 
                 m_sharedMemory->GetData()->attractionPID[GetAttractionID()] = 0;
         });
+
+    m_attractionQueue = nullptr;
+    m_replyMQ = nullptr;
 }
 
 int AttractionProc::GetAttractionID() {

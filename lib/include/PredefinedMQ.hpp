@@ -1,6 +1,7 @@
 #pragma once
 #include "MessageTypes/RegisterMQ.hpp"
 #include "MessageTypes/ClientMQ.hpp"
+#include "MessageTypes/AttractionMQ.hpp"
 
 /// Create or attach cash register message queue
 /// \param cashierPID pid of the cashier process
@@ -20,3 +21,9 @@ ClientMQ GetClientMQ(pid_t clientPID, bool client = false, const std::function<b
 /// \param logger if true the function will create a new message queue instead of attaching existing one
 /// \param errorHandler function that allows to additionally handle certain errors. the function should return false if it fails to handle any error
 LoggerMQ GetLoggerMQ(pid_t loggerPID, bool logger = false, const std::function<bool()>& errorHandler = [] { return false; });
+
+/// Create or attach attraction message queue
+/// \param cashierPID pid of the cashier process
+/// \param worker if true the function will create a new message queue instead of attaching existing one
+/// \param errorHandler function that allows to additionally handle certain errors. the function should return false if it fails to handle any error
+AttractionMQ GetAttractionMQ(pid_t attractionPID, bool worker = false, const std::function<bool()>& errorHandler = [] { return false; }, bool blocking = false);
