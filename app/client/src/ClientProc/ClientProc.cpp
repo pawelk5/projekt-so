@@ -72,12 +72,16 @@ void ClientProc::pLeavePark() {
     
     m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::CashierLoop)->Signal();
 
-    if (!result || !m_clientQueue)
+    if (!result || !m_clientQueue) {
+        pLogMessage("Wychodzi z parku, nie mogl sie polaczyc z kolejka komunikatow kasy!");
         return;
+    }
 
-    auto msg = m_clientQueue->ReceiveMessage(true, 10);
-    if (!msg)
+    auto msg = m_clientQueue->ReceiveMessage(true, 5);
+    if (!msg) {
+        pLogMessage("Wychodzi z parku bez odebrania rachunku (nie mogl stworzyc kolejki odpowiedzi)!");
         return;
+    }
 
     if (msg->mType != ClientMessageType::BILL) 
         return;
@@ -88,7 +92,7 @@ void ClientProc::pLeavePark() {
     ackMsg.content = EmptyMessage{};
     ackMsg.senderPID = getpid();
     ackMsg.mType = ClientMessageType::ACK;
-    m_clientQueue->SendMessage(ackMsg);
+    m_clientQueue->SendMessage(ackMsg, true);
 
     pLogMessage("Wychodzi z parku, placi: " + std::to_string(reply.price));
 }

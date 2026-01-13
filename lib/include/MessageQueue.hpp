@@ -16,9 +16,6 @@
 /// in ubuntu-based systems default max queue size is 10
 #define DEFAULT_MAX_MSQ_SIZE 10
 
-/// Empty message struct
-struct EmptyMessage { };
-
 /// Struct containing message queue parameters
 /// \param msqName message queue name. cannot contain '/' symbol
 /// \param maxMsgCount max number of messages queued in the message queue

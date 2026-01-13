@@ -19,6 +19,10 @@ timespec CreateTimestamp(int add = 0);
 /// \param t seconds since Unix epoch
 timespec CreateTimestampT(time_t t = time(NULL));
 
+/// Returns number of seconds to a specified time
+/// \param t seconds since Unix epoch
+int TimeRemaining(time_t t);
+
 /// Converts string to fixed-size char array
 /// \tparam N size of output array
 /// \param str string to be converted
