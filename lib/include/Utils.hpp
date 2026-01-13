@@ -6,6 +6,13 @@
 #include <unistd.h>
 #include "MessageTypes/LoggerMQ.hpp"
 
+/// semun union required by semctl
+union semun {
+    int val;
+    struct semid_ds* buf;
+    unsigned short* array;
+};
+
 /// Creates or truncates a file
 /// \param filepath path to the file
 /// \returns false on failure

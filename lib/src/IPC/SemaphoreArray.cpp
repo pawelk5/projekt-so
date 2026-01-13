@@ -51,7 +51,6 @@ bool SemaphoreArray::GetSemaphoreArray(const std::string& semPath, int semKey, u
         throw std::runtime_error("Couldn't create semaphore array key!");
         return false;
     }
-
     m_isOwner = create;
 
     pGenerateSemaphores(nSems);
@@ -106,7 +105,10 @@ bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, 
 }
 
 bool SemaphoreArray::SemSetValue(int semID, int16_t value) {
-    if (semctl(m_semData.ID, semID, SETVAL, value) == -1) {
+    semun semopValue;
+    semopValue.val = value;
+
+    if (semctl(m_semData.ID, semID, SETVAL, semopValue) == -1) {
         perror("semctl (setval) error");
         return false;
     }
