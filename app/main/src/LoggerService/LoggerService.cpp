@@ -17,7 +17,10 @@ int g_loggerStatus = 0;
 
 void* LoggerThread(void* arg) {
     LoggerMQ mq = nullptr;
+    std::array<File, 5> t_logFiles { };
     try {
+        for (size_t i = 0; i < t_logFiles.size(); i++)
+            t_logFiles.at(i).Open(logFileNames[i], LOGGER_FILE_FLAGS);
         mq = GetLoggerMQ(getpid(), true);
 
         g_loggerStatus = 1;
@@ -31,10 +34,6 @@ void* LoggerThread(void* arg) {
     }
 
     try {
-        std::array<File, 5> t_logFiles { };
-        for (size_t i = 0; i < t_logFiles.size(); i++)
-            t_logFiles.at(i).Open(logFileNames[i], LOGGER_FILE_FLAGS);
-
         while (true) {
             auto msg = mq->ReceiveMessage();
             if (msg->senderPID == -1)

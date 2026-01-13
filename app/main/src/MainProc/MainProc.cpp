@@ -77,6 +77,7 @@ void MainProc::pCloseImpl() {
         m_sharedMemory->GetData()->isOpen = false;
     });
 
+    pOpenAllLoopSemaphores();
     while(wait(NULL) > 0) { ; }
 
     pLogMessage("", false, true);
