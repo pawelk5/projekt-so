@@ -1,8 +1,7 @@
 #pragma once
 #include <variant>
 #include <memory>
-#include "MessageQueue.hpp"
-
+#include "IPC/MessageQueue.hpp"
 
 enum class TicketType : int {
     H2,

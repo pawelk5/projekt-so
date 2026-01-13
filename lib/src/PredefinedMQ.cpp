@@ -1,5 +1,5 @@
 #include "PredefinedMQ.hpp"
-#include "MessageQueue.hpp"
+#include "IPC/MessageQueue.hpp"
 #include "MessageTypes/AttractionMQ.hpp"
 #include "MessageTypes/ClientMQ.hpp"
 #include "MessageTypes/LoggerMQ.hpp"

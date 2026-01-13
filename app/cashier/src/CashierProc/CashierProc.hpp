@@ -8,7 +8,6 @@
 #include "MessageTypes/RegisterMQ.hpp"
 #include "Process.hpp"
 #include "PredefinedMQ.hpp"
-#include "SemaphoreArray.hpp"
 
 class CashierProc : public Process {
 public:
