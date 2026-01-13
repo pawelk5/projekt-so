@@ -18,4 +18,4 @@ struct AttractionMQMessage {
     AttractionMessageContent content;
 };
 
-using ClientMQ = std::shared_ptr<MessageQueue<AttractionMQMessage>>;
+using AttractionMQ = std::shared_ptr<MessageQueue<AttractionMQMessage>>;

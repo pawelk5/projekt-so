@@ -2,13 +2,10 @@
 #include <sys/types.h>
 #include <array>
 #include <memory>
+#include "Config/Config.hpp"
 
 template<class T>
 class MessageQueue;
-
-#define LOGGER_PATH "/tmp/park-logger"
-#define OUTPUT_PATH "log.txt"
-#define LOGGER_MESSAGE_MAX_LENGTH 256
 
 struct LoggerMQMessage {
     pid_t senderPID;

@@ -70,6 +70,7 @@ protected:
     /// \param value value to be added (or subtracted) from semaphore
     /// \param retryOnInterrupt if the function is interrupted by a signal the function will retry the semaphore operation
     /// \param semundo perform semsignal with SEM_UNDO flag
+    /// \param timeout timeout time in seconds
     /// \returns false if an error occurs or timed out
     bool SemSignal(int semID, int16_t value, bool retryOnInterrupt, bool semundo, int timeout = -1);
 

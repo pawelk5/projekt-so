@@ -1,5 +1,6 @@
 #include "PredefinedMQ.hpp"
 #include "MessageQueue.hpp"
+#include "MessageTypes/AttractionMQ.hpp"
 #include "MessageTypes/ClientMQ.hpp"
 #include "MessageTypes/LoggerMQ.hpp"
 #include <string>
@@ -36,6 +37,19 @@ LoggerMQ GetLoggerMQ(pid_t loggerPID, bool logger, const std::function<bool()>& 
     t_params.blocking = true;
     t_params.create = logger;
     t_params.msqName = std::to_string(loggerPID) + "-logger";
+    t_params.maxMsgCount = DEFAULT_MAX_MSQ_SIZE;
+
+    if (!t_mq->OpenMessageQueue(t_params, errorHandler))
+        return nullptr;
+    return t_mq;
+}
+
+AttractionMQ GetAttractionMQ(pid_t attractionPID, bool worker, const std::function<bool()>& errorHandler, bool blocking) {
+    AttractionMQ t_mq = std::make_shared<MessageQueue<AttractionMQMessage>>();
+    MessageQueueParams t_params;
+    t_params.blocking = true;
+    t_params.create = worker;
+    t_params.msqName = std::to_string(attractionPID) + "-attraction";
     t_params.maxMsgCount = DEFAULT_MAX_MSQ_SIZE;
 
     if (!t_mq->OpenMessageQueue(t_params, errorHandler))

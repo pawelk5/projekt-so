@@ -3,6 +3,9 @@
 #include <sys/wait.h>
 #include "Process.hpp"
 #include "SemaphoreArray.hpp"
+#include "MessageTypes/AttractionMQ.hpp"
+#include "MessageTypes/ClientMQ.hpp"
+
 
 class AttractionProc : public Process {
 public:
@@ -26,4 +29,7 @@ private:
 private:
     int m_attractionID;
     Semaphore m_attractionSemaphore;
+
+    AttractionMQ m_attractionQueue;
+    ClientMQ m_replyMQ;
 };

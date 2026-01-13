@@ -11,10 +11,8 @@
 #include <mqueue.h>
 #include <stdint.h>
 #include <unistd.h>
+#include "Config/Config.hpp"
 
-#define PARK_QUEUE_ID "/park-"
-/// in ubuntu-based systems default max queue size is 10
-#define DEFAULT_MAX_MSQ_SIZE 10
 
 /// Struct containing message queue parameters
 /// \param msqName message queue name. cannot contain '/' symbol
