@@ -1,4 +1,5 @@
 #include "RestaurantProc.hpp"
+#include "PredefinedMQ.hpp"
 #include "SimulationData.hpp"
 
 static volatile bool paused = false;
@@ -60,6 +61,11 @@ void RestaurantProc::pInitImpl() {
     });
 
     m_restaurantSemaphore = m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::RestaurantLoop);
+
+    m_replyMQ = nullptr;
+    m_restaurationMQ = GetRestaurantMQ(getpid(), true);
+    if (!m_restaurationMQ)
+        throw std::runtime_error("Couldn't create attraction message queue!");
 }
 
 void RestaurantProc::pCloseImpl() {
@@ -67,6 +73,9 @@ void RestaurantProc::pCloseImpl() {
         if (m_sharedMemory->GetData()->attractionPID[RESTAURANT_INDEX] == getpid())  
             m_sharedMemory->GetData()->attractionPID[RESTAURANT_INDEX] = 0;
     });
+
+    m_restaurationMQ = nullptr;
+    m_replyMQ = nullptr;
     m_restaurantSemaphore = nullptr;
 }
 

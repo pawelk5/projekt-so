@@ -3,6 +3,8 @@
 #include <sys/wait.h>
 #include "Process.hpp"
 #include "SemaphoreArray.hpp"
+#include "MessageTypes/RestaurantMQ.hpp"
+#include "MessageTypes/ClientMQ.hpp"
 
 class RestaurantProc : public Process {
 public:
@@ -19,4 +21,7 @@ protected:
 
 private:
     Semaphore m_restaurantSemaphore;
+
+    RestaurantMQ m_restaurationMQ;
+    ClientMQ m_replyMQ;
 };

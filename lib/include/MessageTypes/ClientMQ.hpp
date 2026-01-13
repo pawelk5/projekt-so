@@ -4,10 +4,6 @@
 #include "MessageQueue.hpp"
 #include "SharedMessageTypes.hpp"
 
-struct Bill {
-    float price;
-};
-
 enum class ClientMessageType : int {
     ENTRY_PERMIT,
     BILL,
