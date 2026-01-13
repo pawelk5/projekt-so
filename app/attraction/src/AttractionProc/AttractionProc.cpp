@@ -1,8 +1,8 @@
 #include "AttractionProc.hpp"
+#include "IPC/Signal.hpp"
 #include "PredefinedMQ.hpp"
 #include "SimulationData.hpp"
-#include <sys/types.h>
-#include <unistd.h>
+
 
 static volatile bool paused = false;
 
@@ -39,22 +39,8 @@ AttractionProc& AttractionProc::Get() {
 }
 
 void AttractionProc::pInitImpl() {
-    struct sigaction sa;
-    sa.sa_handler = SigUsr1;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-
-    if (sigaction(SIGUSR1, &sa, NULL) == -1) {
-        perror("sigaction SIGUSR1");
-        throw std::runtime_error("Couldn't set up SIGUSR1 handler!");
-    }
-
-    sa.sa_handler = SigUsr2;
-
-    if (sigaction(SIGUSR2, &sa, NULL) == -1) {
-        perror("sigaction SIGUSR2");
-        throw std::runtime_error("Couldn't set up SIGUSR2 handler!");
-    }
+    CreateSignalHandler(SIGUSR1, SigUsr1);
+    CreateSignalHandler(SIGUSR2, SigUsr2);
 
     m_sharedMemory->GetSemLock().Execute([this]() {
         if (!m_sharedMemory->GetData()->isOpen)
