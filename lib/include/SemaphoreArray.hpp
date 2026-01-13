@@ -15,13 +15,14 @@ public:
         /// \param value value to be subtracted from semaphore
         /// \param retryOnInterrupt if the function is interrupted by a signal the function will retry the semaphore operation
         /// \param semundo perform semsignal with SEM_UNDO flag
+        /// \param timeout timeout time in seconds
         /// \returns false if an error occurs
-        bool Wait(uint16_t value = 1, bool retryOnInterrupt = false, bool semundo = false);
+        bool Wait(uint16_t value = 1, bool retryOnInterrupt = false, bool semundo = false, int timeout = -1);
 
         /// Signals a semaphore
         /// \param value value to be added (or subtracted) from semaphore
         /// \returns false if an error occurs
-        bool Signal(uint16_t value = 1);
+        bool Signal(uint16_t value = 1, int timeout = -1);
 
         /// Sets semaphore value
         /// \param value new semaphore value
@@ -69,8 +70,8 @@ protected:
     /// \param value value to be added (or subtracted) from semaphore
     /// \param retryOnInterrupt if the function is interrupted by a signal the function will retry the semaphore operation
     /// \param semundo perform semsignal with SEM_UNDO flag
-    /// \returns false if an error occurs
-    bool SemSignal(int semID, int16_t value, bool retryOnInterrupt, bool semundo);
+    /// \returns false if an error occurs or timed out
+    bool SemSignal(int semID, int16_t value, bool retryOnInterrupt, bool semundo, int timeout = -1);
 
     /// Sets semaphore value
     /// \param semID semaphore ID (index in semaphore array)

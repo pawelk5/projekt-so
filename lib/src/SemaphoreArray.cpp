@@ -69,7 +69,7 @@ void SemaphoreArray::pGenerateSemaphores(uint16_t nSems) {
         ));
 }
 
-bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, bool semundo) {
+bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, bool semundo, int timeout) {
     if (m_semData.ID == 0 || semID < 0 || semID >= m_semaphores.size())
         return false;
 
@@ -80,9 +80,18 @@ bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, 
 
     bool leave = false;
     while (true) {
-        if (semop(m_semData.ID, &action, 1) != -1) 
-            return true;
-        
+        if (timeout == -1) {
+            if (semop(m_semData.ID, &action, 1) != -1) 
+                return true;
+        }
+        else {
+            auto tmspc = CreateTimestamp(timeout);
+            if (semtimedop(m_semData.ID, &action, 1, &tmspc) != -1)
+                return true;
+            
+            if (errno == EAGAIN)
+                return false;
+        }
         if (errno == EINTR) {
             if (retryOnInterrupt)
                 continue;

@@ -6,11 +6,11 @@ SemaphoreArray::SemaphoreStruct::SemaphoreStruct(SemaphoreArray& semArray, int s
 
 }
 
-bool SemaphoreArray::SemaphoreStruct::Wait(uint16_t value, bool retryOnInterrupt, bool semundo) { 
-    return m_semArray.get().SemSignal(m_semID, -int16_t(value), retryOnInterrupt, semundo);
+bool SemaphoreArray::SemaphoreStruct::Wait(uint16_t value, bool retryOnInterrupt, bool semundo, int timeout) { 
+    return m_semArray.get().SemSignal(m_semID, -int16_t(value), retryOnInterrupt, semundo, timeout);
 }
-bool SemaphoreArray::SemaphoreStruct::Signal(uint16_t value) {
-    return m_semArray.get().SemSignal(m_semID, value, false, false);
+bool SemaphoreArray::SemaphoreStruct::Signal(uint16_t value, int timeout) {
+    return m_semArray.get().SemSignal(m_semID, value, false, false, timeout);
 }
 
 bool SemaphoreArray::SemaphoreStruct::SetValue(int16_t value) {

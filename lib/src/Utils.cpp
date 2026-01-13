@@ -1,5 +1,6 @@
 #include "Utils.hpp"
 #include "SemaphoreArray.hpp"
+#include <cstddef>
 #include <ctime>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -35,4 +36,8 @@ std::string CreateLogMessage(const LoggerMQMessage& message) {
     msg << "[" << std::put_time(&localtime, "%Y-%m-%d %H:%M:%S") << "] " << "(" << message.senderPID << "): ";
     msg << message.message.data() << "\n";
     return msg.str();
+}
+
+int TimeRemaining(time_t t) {
+    return t - time(NULL);
 }

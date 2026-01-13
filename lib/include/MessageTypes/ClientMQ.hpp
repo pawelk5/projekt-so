@@ -2,11 +2,7 @@
 #include <variant>
 #include <memory>
 #include "MessageQueue.hpp"
-
-
-struct EntryPermit {
-    bool allowed;
-};
+#include "SharedMessageTypes.hpp"
 
 struct Bill {
     float price;
