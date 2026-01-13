@@ -1,6 +1,7 @@
 #include "MainProc.hpp"
 #include "LoggerService/LoggerService.hpp"
 #include "SimulationData.hpp"
+#include "IPC/Signal.hpp"
 #include "Utils.hpp"
 #include <fcntl.h>
 #include <iostream>
@@ -38,20 +39,9 @@ void MainProc::Run() {
 }
 
 void MainProc::pInitImpl() {
-    struct sigaction sa;
-    sa.sa_handler = SigintAction;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
+    CreateSignalHandler(SIGINT, SigintAction);
+    CreateSignalHandler(SIGTERM, SigintAction);
 
-    if (sigaction(SIGINT, &sa, NULL) == -1) {
-        perror("sigaction SIGINT");
-        throw std::runtime_error("Couldn't set up sigint handler!");
-    }
-
-    if (sigaction(SIGTERM, &sa, NULL) == -1) {
-        perror("sigaction SIGTERM");
-        throw std::runtime_error("Couldn't set up sigterm handler!");
-    }
 
     sem_init(&g_loggerInitSem, 0, 0);
     pthread_create(&m_loggerThread, nullptr, LoggerThread, nullptr);
@@ -68,24 +58,18 @@ void MainProc::pInitImpl() {
         m_sharedMemory->GetData()->mainPID = getpid();
     });
 
-    if (fork() == 0)
-        execl("./park-cashier", "park-cashier", NULL);
 
-    if (fork() == 0)
-        execl("./park-restaurant", "park-restaurant", NULL);
-
+    CreateProcess("park-cashier");
+    CreateProcess("park-restaurant");
 
     for (int i = 0; i < ATTRACTION_COUNT - 1; i++) {
-        if (fork() == 0)
-            execl("./park-attraction", "park-attraction", NULL);
+        CreateProcess("park-attraction");
     }
 
     pOpenAllLoopSemaphores();
     sleep(1);
-    for (int i = 0; i < 500; i++) {
-        if (fork() == 0)
-            execl("./park-client", "park-client", NULL);
-    }
+    for (int i = 0; i < 5; i++) 
+        CreateProcess("park-client");
 }
 
 void MainProc::pCloseImpl() {

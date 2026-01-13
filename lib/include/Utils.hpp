@@ -42,3 +42,10 @@ std::array<char, N> ToArray(const std::string& str) {
 /// \param str string to be converted
 /// \returns formatted string
 std::string CreateLogMessage(const LoggerMQMessage& msg);
+
+/// Creates a new process using fork and execl
+/// \param procName process name
+/// \param path path where the executable file exists
+/// \returns false if fork fails
+/// \note if execl() fails in the child process exits with -1
+bool CreateProcess(const char* procName, const char* path = "./");

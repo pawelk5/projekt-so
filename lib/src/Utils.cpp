@@ -41,3 +41,14 @@ std::string CreateLogMessage(const LoggerMQMessage& message) {
 int TimeRemaining(time_t t) {
     return t - time(NULL);
 }
+
+bool CreateProcess(const char* procName, const char* path) {
+    switch (fork()) {
+    case -1:
+        return false;
+    case 0:
+        if (execl(((std::string)path + procName).c_str(), procName, NULL) == -1)
+            exit(-1);
+    }
+    return true;
+}
