@@ -1,8 +1,10 @@
 #include "ClientProc.hpp"
+#include "Config/Config.hpp"
 #include "MessageTypes/ClientMQ.hpp"
 #include "MessageTypes/RegisterMQ.hpp"
 #include "PredefinedMQ.hpp"
 #include "SimulationData.hpp"
+#include "Utils.hpp"
 #include <cstdio>
 #include <string>
 #include <sys/types.h>
@@ -23,6 +25,8 @@ void ClientProc::Run() {
     m_clientQueue = nullptr;
     if (!m_enteredPark)
         return;
+    
+    pLogMessage((std::string)"Klient" + (m_data.isVip ? " vip" : "") + " wchodzi do parku!");
 
     // klient jest w parku
     sleep(5);
@@ -35,12 +39,12 @@ void ClientProc::Run() {
 void ClientProc::pInitImpl() {
     m_enteredPark = false;
 
-    m_data.hasChild = true;
-    m_data.isVip = false;
+    m_data.hasChild = RandomChance(CHILD_PROB);
+    m_data.isVip = RandomChance(VIP_PROB);
     m_data.ticketType = TicketType::H2;
     pSetProcessRole(ProcessRole::CLIENT);
 
-    pLogMessage("Klient rozpoczyna prace!");
+    pLogMessage((std::string)"Klient" + (m_data.isVip ? " vip" : "") + " rozpoczyna prace!");
 }
 
 void ClientProc::pCloseImpl() {
