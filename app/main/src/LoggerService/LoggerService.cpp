@@ -1,6 +1,9 @@
 #include "LoggerService.hpp"
+#include "Config/Config.hpp"
+#include "File.hpp"
 #include "MessageTypes/LoggerMQ.hpp"
 #include "PredefinedMQ.hpp"
+#include <array>
 #include <cerrno>
 #include <exception>
 #include <semaphore.h>
@@ -28,11 +31,9 @@ void* LoggerThread(void* arg) {
     }
 
     try {
-        int file = open(OUTPUT_PATH, O_WRONLY | O_TRUNC, 0600);
-        if (file == -1) {
-            perror("open error");
-            throw std::runtime_error("open error");
-        }
+        std::array<File, 5> t_logFiles { };
+        for (size_t i = 0; i < t_logFiles.size(); i++)
+            t_logFiles.at(i).Open(logFileNames[i], LOGGER_FILE_FLAGS);
 
         while (true) {
             auto msg = mq->ReceiveMessage();
@@ -40,12 +41,15 @@ void* LoggerThread(void* arg) {
                 break;
 
             auto msgStr = CreateLogMessage(*msg);
-            if (write(file, msgStr.c_str(), msgStr.length()) == -1) {
-                perror("write error");
+            if (!t_logFiles.at(0).Write(msgStr))
                 throw std::runtime_error("write error");
-            }
-        }
 
+            if (msg->senderRole == ProcessRole::MAIN || (int)msg->senderRole >= 5)
+                continue;
+
+            if (!t_logFiles.at((int)msg->senderRole).Write(msgStr))
+                throw std::runtime_error("write error");
+        }
     } catch (const std::exception& e) {
         g_loggerStatus = -1;
         mq = nullptr;

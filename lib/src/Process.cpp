@@ -26,6 +26,7 @@ void Process::Init(bool createIPC) {
         m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::MainSharedMemorySemaphore), createIPC))
         throw std::runtime_error("Couldn't attach shared memory!");
 
+    m_processRole = ProcessRole::MAIN;
     pInitImpl();
 }
 
@@ -54,7 +55,12 @@ void Process::pLogMessage(const std::string& message, bool backupLogToStdout, bo
 
     LoggerMQMessage msg;
     msg.senderPID = endWorkMessage ? -1 : getpid();
+    msg.senderRole = m_processRole;
     msg.timestamp = time(NULL);
     msg.message = ToArray<LOGGER_MESSAGE_MAX_LENGTH>(message);
     mq->SendMessage(msg);
+}
+
+void Process::pSetProcessRole(ProcessRole role) {
+    m_processRole = role;
 }

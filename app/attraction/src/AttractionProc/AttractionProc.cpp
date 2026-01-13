@@ -1,7 +1,9 @@
 #include "AttractionProc.hpp"
 #include "IPC/Signal.hpp"
+#include "MessageTypes/LoggerMQ.hpp"
 #include "PredefinedMQ.hpp"
 #include "SimulationData.hpp"
+#include <string>
 
 
 static volatile bool paused = false;
@@ -66,6 +68,10 @@ void AttractionProc::pInitImpl() {
     m_attractionMQ = GetAttractionMQ(getpid(), true);
     if (!m_attractionMQ)
         throw std::runtime_error("Couldn't create attraction message queue!");
+
+    pSetProcessRole(ProcessRole::ATTRACTION);
+
+    pLogMessage("Atrakcja " + std::to_string(m_attractionID) + " rozpoczyna prace!");
 }
 
 void AttractionProc::Run() {
@@ -94,6 +100,8 @@ void AttractionProc::pCloseImpl() {
 
     m_attractionMQ = nullptr;
     m_replyMQ = nullptr;
+
+    pLogMessage("Atrakcja " + std::to_string(m_attractionID) + " konczy prace!");
 }
 
 int AttractionProc::GetAttractionID() {
