@@ -53,6 +53,9 @@ void RestaurantProc::pInitImpl() {
     m_restaurationMQ = GetRestaurantMQ(getpid(), true);
     if (!m_restaurationMQ)
         throw std::runtime_error("Couldn't create attraction message queue!");
+
+    pSetProcessRole(ProcessRole::RESTAURANT);
+    pLogMessage("Restauracja rozpoczyna prace!");
 }
 
 void RestaurantProc::pCloseImpl() {
@@ -64,6 +67,8 @@ void RestaurantProc::pCloseImpl() {
     m_restaurationMQ = nullptr;
     m_replyMQ = nullptr;
     m_restaurantSemaphore = nullptr;
+
+    pLogMessage("Restauracja konczy prace!");
 }
 
 void RestaurantProc::CloseAttraction() {

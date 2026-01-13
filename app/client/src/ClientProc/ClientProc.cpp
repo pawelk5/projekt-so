@@ -38,6 +38,9 @@ void ClientProc::pInitImpl() {
     m_data.hasChild = true;
     m_data.isVip = false;
     m_data.ticketType = TicketType::H2;
+    pSetProcessRole(ProcessRole::CLIENT);
+
+    pLogMessage("Klient rozpoczyna prace!");
 }
 
 void ClientProc::pCloseImpl() {
@@ -48,6 +51,8 @@ void ClientProc::pCloseImpl() {
 
     m_clientQueue = nullptr;
     m_registerMQ = nullptr;
+
+    pLogMessage("Klient konczy prace!");
 }
 
 void ClientProc::pLeavePark() {

@@ -53,6 +53,9 @@ void CashierProc::pInitImpl() {
     m_registerQueue = GetRegisterMQ(m_sharedMemory->GetData()->cashierPID, true);
     m_loopSemaphore = m_semaphoreArray->GetSemaphore((uint16_t) MainSemaphoreArray::CashierLoop);
     m_clientCounter = 0;
+    pSetProcessRole(ProcessRole::CASHIER);
+
+    pLogMessage("Kasa rozpoczyna prace!");
 }
 
 void CashierProc::pCloseImpl() {
@@ -63,6 +66,8 @@ void CashierProc::pCloseImpl() {
     
     m_registerQueue = nullptr;
     m_replyMQ = nullptr;
+
+    pLogMessage("Kasa konczy prace!");
 }
 
 void CashierProc::pHandleRegisterMQ() {

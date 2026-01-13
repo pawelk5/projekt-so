@@ -13,6 +13,7 @@ add_library(${STATIC_LIBRARY} STATIC
     "src/IPC/Semaphore.cpp"
     "src/IPC/Signal.cpp"
     "src/Process.cpp"
+    "src/File.cpp"
     "src/PredefinedMQ.cpp"
 )
 

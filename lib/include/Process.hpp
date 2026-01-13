@@ -1,6 +1,7 @@
 #pragma once
 #include "IPC/SemaphoreArray.hpp"
 #include "IPC/SharedMemory.hpp"
+#include "MessageTypes/LoggerMQ.hpp"
 #include "SimulationData.hpp"
 #include <memory>
 
@@ -38,9 +39,13 @@ protected:
     /// \param endWorkMessage if true the function will send special message signaling end of work for logger service
     void pLogMessage(const std::string& message, bool backupLogToStdout = true, bool endWorkMessage = false);
 
+    /// Sets process role, used with logging
+    void pSetProcessRole(ProcessRole role);
+
     std::shared_ptr<SemaphoreArray> m_semaphoreArray;
     std::shared_ptr<SharedMemory<SimulationData>> m_sharedMemory;
 
 private:
     Semaphore m_loggerSemaphore;
+    ProcessRole m_processRole;
 };

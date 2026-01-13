@@ -12,7 +12,22 @@
 #define ATTRACTION_COUNT 17
 #define RESTAURANT_INDEX ATTRACTION_COUNT - 1
 #define PARK_SIZE 100
+#define LOGGER_FILE_FLAGS O_CREAT | O_WRONLY | O_TRUNC
 
 #define LOGGER_PATH "/tmp/park-logger"
-#define OUTPUT_PATH "log.txt"
 #define LOGGER_MESSAGE_MAX_LENGTH 256
+
+#define MAIN_LOG_PATH "main.log"
+#define CASHIER_LOG_PATH "cashier.log"
+#define ATTRACTION_LOG_PATH "attraction.log"
+#define RESTAURANT_LOG_PATH "restaurant.log"
+#define CLIENT_LOG_PATH "client.log"
+
+constexpr const char* logFileNames[5] = {
+    MAIN_LOG_PATH,
+    CASHIER_LOG_PATH,
+    ATTRACTION_LOG_PATH,
+    RESTAURANT_LOG_PATH,
+    CLIENT_LOG_PATH
+};
+
