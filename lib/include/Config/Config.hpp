@@ -11,7 +11,6 @@
 
 #define ATTRACTION_COUNT 17
 #define RESTAURANT_INDEX ATTRACTION_COUNT - 1
-#define PARK_SIZE 100
 #define LOGGER_FILE_FLAGS O_CREAT | O_WRONLY | O_TRUNC
 
 #define LOGGER_PATH "/tmp/park-logger"
@@ -31,3 +30,6 @@ constexpr const char* logFileNames[5] = {
     CLIENT_LOG_PATH
 };
 
+#define PARK_SIZE 100
+#define VIP_PROB 0.01
+#define CHILD_PROB 0.6

@@ -1,5 +1,6 @@
 #include "Utils.hpp"
 #include "IPC/SemaphoreArray.hpp"
+#include <random>
 #include <cstddef>
 #include <ctime>
 #include <fcntl.h>
@@ -51,4 +52,12 @@ bool CreateProcess(const char* procName, const char* path) {
             exit(-1);
     }
     return true;
+}
+
+
+bool RandomChance(float prob) {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::bernoulli_distribution dist(prob);
+    return dist(gen);
 }

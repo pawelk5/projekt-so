@@ -56,3 +56,7 @@ std::string CreateLogMessage(const LoggerMQMessage& msg);
 /// \returns false if fork fails
 /// \note if execl() fails in the child process exits with -1
 bool CreateProcess(const char* procName, const char* path = "./");
+
+/// Returns true with given probabilty
+/// \param prob probability in range [0-1]
+bool RandomChance(float prob);
