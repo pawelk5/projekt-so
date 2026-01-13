@@ -1,11 +1,9 @@
 #include "ClientProc.hpp"
-#include "MessageQueue.hpp"
 #include "MessageTypes/ClientMQ.hpp"
 #include "MessageTypes/RegisterMQ.hpp"
 #include "PredefinedMQ.hpp"
 #include "SimulationData.hpp"
 #include <cstdio>
-#include <iostream>
 #include <string>
 #include <sys/types.h>
 #include <unistd.h>

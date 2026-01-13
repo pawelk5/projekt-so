@@ -2,7 +2,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "Process.hpp"
-#include "SemaphoreArray.hpp"
 #include "MessageTypes/AttractionMQ.hpp"
 #include "MessageTypes/ClientMQ.hpp"
 

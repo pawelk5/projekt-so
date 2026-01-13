@@ -1,9 +1,8 @@
 #pragma once
 #include <variant>
 #include <memory>
-#include "MessageQueue.hpp"
+#include "IPC/MessageQueue.hpp"
 #include "SharedMessageTypes.hpp"
-
 
 struct EnterRestaurant {
     bool hasChild;

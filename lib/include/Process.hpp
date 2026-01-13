@@ -1,6 +1,6 @@
 #pragma once
-#include "SemaphoreArray.hpp"
-#include "SharedMemory.hpp"
+#include "IPC/SemaphoreArray.hpp"
+#include "IPC/SharedMemory.hpp"
 #include "SimulationData.hpp"
 #include <memory>
 

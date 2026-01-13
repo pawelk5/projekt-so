@@ -2,7 +2,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "Process.hpp"
-#include "SemaphoreArray.hpp"
+#include "IPC/SemaphoreArray.hpp"
 #include "MessageTypes/RestaurantMQ.hpp"
 #include "MessageTypes/ClientMQ.hpp"
 

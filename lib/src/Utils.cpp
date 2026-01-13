@@ -1,5 +1,5 @@
 #include "Utils.hpp"
-#include "SemaphoreArray.hpp"
+#include "IPC/SemaphoreArray.hpp"
 #include <cstddef>
 #include <ctime>
 #include <fcntl.h>

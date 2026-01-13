@@ -1,6 +1,5 @@
 #include "AttractionProc.hpp"
 #include "PredefinedMQ.hpp"
-#include "SemaphoreLock.hpp"
 #include "SimulationData.hpp"
 #include <sys/types.h>
 #include <unistd.h>

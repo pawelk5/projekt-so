@@ -1,4 +1,4 @@
-#include "SemaphoreArray.hpp"
+#include "IPC/SemaphoreArray.hpp"
 #include "Utils.hpp"
 #include <cerrno>
 #include <cstdint>
