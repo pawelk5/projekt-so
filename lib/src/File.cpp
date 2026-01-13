@@ -19,7 +19,7 @@ bool File::Open(const std::string& path, int mode, int perm) {
     if (m_fd != -1)
         return false;
 
-    m_fd = open(path.c_str(), mode, perm);
+    m_fd = open(path.c_str(), mode | O_CLOEXEC, perm);
     if (m_fd == -1) {
         perror("open error");
         throw std::runtime_error("open error");
