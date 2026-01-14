@@ -54,10 +54,20 @@ bool CreateProcess(const char* procName, const char* path) {
     return true;
 }
 
-
 bool RandomChance(float prob) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
     std::bernoulli_distribution dist(prob);
+    return dist(gen);
+}
+
+int RandomInt(int min, int max) {
+    if (min > max)
+        return 0;
+
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dist(min, max);
+
     return dist(gen);
 }

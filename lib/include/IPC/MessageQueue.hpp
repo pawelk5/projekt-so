@@ -42,7 +42,7 @@ public:
     /// \param params structure containing message queue parameters
     /// \param errorHandler function that allows to additionally handle certain errors. the function should return false if it fails to handle any error
     bool OpenMessageQueue(const MessageQueueParams& params, const std::function<bool()>& errorHandler) {
-        if (m_msqID == -1)
+        if (m_msqID >= 0)
             CloseMessageQueue();
 
         mq_attr mqattr;

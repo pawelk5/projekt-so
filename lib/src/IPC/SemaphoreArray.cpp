@@ -46,7 +46,7 @@ bool SemaphoreArray::GetSemaphoreArray(const std::string& semPath, int semKey, u
         return false;
     }
 
-    if ((m_semData.ID = semget(m_semData.Key, nSems, (create ? IPC_CREAT | IPC_EXCL : 0) | 0666)) == -1) {
+    if ((m_semData.ID = semget(m_semData.Key, nSems, (create ? IPC_CREAT | IPC_EXCL : 0) | 0600)) == -1) {
         perror("semget error");
         throw std::runtime_error("Couldn't create semaphore array key!");
         return false;
