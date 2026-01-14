@@ -9,7 +9,7 @@
 #include <sys/types.h>
 
 SemaphoreArray::SemaphoreArray() 
-    :m_isOwner(false), m_semData(0, 0)
+    :m_isOwner(false), m_semData(-1, -1)
 {
 
 }
@@ -19,7 +19,7 @@ SemaphoreArray::~SemaphoreArray() {
 }
 
 bool SemaphoreArray::DeleteSemaphoreArray() {
-    if (!m_isOwner || m_semData.isEmpty() || m_semData.ID <= 0)
+    if (!m_isOwner || m_semData.isEmpty())
         return false;
 
     if (semctl(m_semData.ID, m_semaphores.size(), IPC_RMID) == -1) {
@@ -37,7 +37,7 @@ bool SemaphoreArray::GetSemaphoreArray(const std::string& semPath, int semKey, u
         if (!CreateEmptyFile(semPath))
             throw std::runtime_error("Couldn't create semaphore array file!");
 
-    if (!m_semaphores.empty() && m_isOwner)
+    if (!m_semaphores.empty())
         DeleteSemaphoreArray();
 
     if ((m_semData.Key = ftok(semPath.c_str(), semKey)) == -1) {
@@ -69,7 +69,7 @@ void SemaphoreArray::pGenerateSemaphores(uint16_t nSems) {
 }
 
 bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, bool semundo, int timeout) {
-    if (m_semData.ID == 0 || semID < 0 || semID >= m_semaphores.size())
+    if (m_semData.isEmpty() || semID < 0 || semID >= m_semaphores.size())
         return false;
 
     sembuf action;
@@ -105,6 +105,9 @@ bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, 
 }
 
 bool SemaphoreArray::SemSetValue(int semID, int16_t value) {
+    if (m_semData.isEmpty())
+        return false;
+
     semun semopValue;
     semopValue.val = value;
 
@@ -116,6 +119,9 @@ bool SemaphoreArray::SemSetValue(int semID, int16_t value) {
 }
 
 int SemaphoreArray::SemGetValue(int semID) {
+    if (m_semData.isEmpty() || semID < 0 || semID >= m_semaphores.size())
+        return -1;
+
     int value = semctl(m_semData.ID, semID, GETVAL);
     if (value == -1)
         perror("semctl (getval) error");
@@ -123,5 +129,8 @@ int SemaphoreArray::SemGetValue(int semID) {
 }
 
 Semaphore SemaphoreArray::GetSemaphore(uint16_t semID) {
+    if (m_semData.isEmpty())
+        return nullptr;
+    
     return semID >= m_semaphores.size() ? nullptr : m_semaphores.at(semID);
 }

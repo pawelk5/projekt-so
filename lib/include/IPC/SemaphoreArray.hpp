@@ -54,7 +54,7 @@ public:
     /// \throws std::runtime_error if an error occurs
     bool GetSemaphoreArray(const std::string& semPath, int semKey, uint16_t nSems, bool create = false);
 
-    /// Creates or attaches the semaphore array
+    /// Deletes or detaches the semaphore array
     /// \returns false if semaphore array object is not attached to any semaphore array
     /// \throws std::runtime_error if an error occurs
     bool DeleteSemaphoreArray();
@@ -97,7 +97,7 @@ private:
         key_t Key;
         int ID;
 
-        bool isEmpty() { return Key <= 0 && ID <= 0; }
+        bool isEmpty() { return Key < 0 && ID < 0; }
     };
 
     SemData m_semData;
