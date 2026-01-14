@@ -42,7 +42,7 @@ public:
     /// \param params structure containing message queue parameters
     /// \param errorHandler function that allows to additionally handle certain errors. the function should return false if it fails to handle any error
     bool OpenMessageQueue(const MessageQueueParams& params, const std::function<bool()>& errorHandler) {
-        if (m_msqID >= 0)
+        if (m_msqID == -1)
             CloseMessageQueue();
 
         mq_attr mqattr;
@@ -78,7 +78,7 @@ public:
     /// \returns false if object does not hold any message queue
     /// \throws std::runtime_error if detaching fails
     bool CloseMessageQueue() {
-        if (m_msqID <= 0)
+        if (m_msqID == -1)
             return false;
 
         if (mq_close(m_msqID) == -1) {
@@ -95,7 +95,7 @@ public:
             }
         }
         
-        m_msqID = 0;
+        m_msqID = -1;
         m_owner = false;
 
         return true;
@@ -110,7 +110,7 @@ public:
     /// \returns false if message queue is not initialized or timed out/interrupted or message was handled by errorHandler
     /// \throws if error occurs while sending a message and is not handled by errorHandler
     bool SendMessage(const MessageType& msg, const std::function<bool()>& errorHandler, bool retryOnInterrupt = true, int priority = 0, int timeout = -1) {
-        if (!m_msqID)
+        if (m_msqID == -1)
             return false;
 
         int result = 0;
@@ -156,7 +156,7 @@ public:
     /// \returns pointer to message or nullptr if timed out/interrupted
     /// \throws if error occurs while receiving a message
     std::shared_ptr<MessageType> ReceiveMessage(bool retryOnInterrupt = true, int timeout = -1) {
-        if (!m_msqID)
+        if (m_msqID == -1)
             return nullptr;
 
         auto dst = std::make_shared<MessageType>();
