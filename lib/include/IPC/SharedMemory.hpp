@@ -17,12 +17,12 @@ public:
         key_t Key;
         key_t ID;
 
-        bool isEmpty() { return Key <= 0 && ID <= 0; }
+        bool isEmpty() { return Key < 0 && ID < 0; }
     };
 
 public:
     SharedMemory() 
-        :m_memPtr(nullptr), m_memData(0, 0), m_isOwner(false)
+        :m_memPtr(nullptr), m_memData(-1, -1), m_isOwner(false)
     {
 
     }
@@ -71,7 +71,7 @@ private:
         if (m_isOwner)
             pDeleteMemory();
         
-        m_memData = { 0, 0 };
+        m_memData = { -1, -1 };
         return true;
     }
 
@@ -81,7 +81,7 @@ private:
             throw std::runtime_error("Couldn't delete shared memory!");
         }
         m_isOwner = false;
-        m_memData = { 0, 0 };
+        m_memData = { -1, -1 };
         m_memPtr = nullptr;
     }
 
