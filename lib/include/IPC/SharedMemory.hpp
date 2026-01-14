@@ -98,7 +98,7 @@ private:
             throw std::runtime_error("Couldn't generate shared memory key!");
             return false;
         }
-        if ( (m_memData.ID = shmget(m_memData.Key, sizeof(T), (create ? IPC_CREAT | IPC_EXCL : 0) | 0666)) == -1 ) {
+        if ( (m_memData.ID = shmget(m_memData.Key, sizeof(T), (create ? IPC_CREAT | IPC_EXCL : 0) | 0600)) == -1 ) {
             perror("shmget error");
             throw std::runtime_error("Couldn't allocate shared memory!");
             return false;

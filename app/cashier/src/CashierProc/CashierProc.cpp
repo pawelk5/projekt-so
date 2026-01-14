@@ -23,13 +23,13 @@ void CashierProc::Run() {
         m_loopSemaphore->Wait(1, true);
         pHandleRegisterMQ();
 
-        while (m_enterVipQueue.size() > 0) {
+        while (m_enterVipQueue.size() > 0 && m_sharedMemory->GetData()->isOpen) {
             if (!pRegisterClient(m_enterVipQueue[0]))
                 break;
             m_enterVipQueue.erase(m_enterVipQueue.begin());
         }
 
-        while (m_enterVipQueue.size() == 0 && m_enterQueue.size() > 0) {
+        while (m_enterVipQueue.size() == 0 && m_enterQueue.size() > 0 && m_sharedMemory->GetData()->isOpen) {
             if (!pRegisterClient(m_enterQueue[0]))
                 break;
             m_enterQueue.erase(m_enterQueue.begin());

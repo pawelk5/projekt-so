@@ -57,6 +57,13 @@ std::string CreateLogMessage(const LoggerMQMessage& msg);
 /// \note if execl() fails in the child process exits with -1
 bool CreateProcess(const char* procName, const char* path = "./");
 
-/// Returns true with given probabilty
-/// \param prob probability in range [0-1]
+/// Returns true with given probability
+/// \param prob probability in range [0; 1]
 bool RandomChance(float prob);
+
+/// Returns random int in range [min; max]
+/// \param min minimum value (inclusive)
+/// \param max maximum value (inclusive)
+/// \returns random value in range [min; max]
+/// \note if min > max, returns 0
+int RandomInt(int min, int max);
