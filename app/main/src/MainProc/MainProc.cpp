@@ -35,13 +35,17 @@ MainProc& MainProc::Get() {
 }
 
 void MainProc::Run() {
-    while(wait(NULL) > 0) { ; }
+    while (m_sharedMemory->GetData()->isOpen) {
+        CreateProcess("park-client");
+        usleep(RandomInt(CLIENT_SPAWN_TIME_MIN, CLIENT_SPAWN_TIME_MAX));
+    }
 }
 
 void MainProc::pInitImpl() {
     CreateSignalHandler(SIGINT, SigintAction);
     CreateSignalHandler(SIGTERM, SigintAction);
-
+    if (signal(SIGCHLD, SIG_IGN) == SIG_ERR)
+        throw std::runtime_error("Couldn't ignore sigchld signal!");
 
     sem_init(&g_loggerInitSem, 0, 0);
     pthread_create(&m_loggerThread, nullptr, LoggerThread, nullptr);
@@ -67,9 +71,6 @@ void MainProc::pInitImpl() {
     }
 
     pOpenAllLoopSemaphores();
-    sleep(1);
-    for (int i = 0; i < 500; i++) 
-        CreateProcess("park-client");
 }
 
 void MainProc::pCloseImpl() {
