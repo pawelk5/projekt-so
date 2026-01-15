@@ -20,7 +20,8 @@ protected:
     void pCloseImpl() override;
 
 private:
-    Semaphore m_restaurantSemaphore;
+    Semaphore m_pauseSemaphore;
+    Semaphore m_loopSemaphore;
 
     RestaurantMQ m_restaurationMQ;
     ClientMQ m_replyMQ;

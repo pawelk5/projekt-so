@@ -11,7 +11,6 @@ void SigUsr1(int sig) {
 }
 
 void SigUsr2(int sig) {
-    paused = false;
     RestaurantProc::Get().OpenAttraction();
 }
 
@@ -29,7 +28,8 @@ void RestaurantProc::Run() {
 
         // attraction was closed, wait for signal to open
         if (paused)
-            m_restaurantSemaphore->Wait(1, true);
+            m_pauseSemaphore->Wait(1, true);
+        paused = false;
     }
 }
 
@@ -47,7 +47,8 @@ void RestaurantProc::pInitImpl() {
         m_sharedMemory->GetData()->attractionPID[RESTAURANT_INDEX] = getpid();
     });
 
-    m_restaurantSemaphore = m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::RestaurantLoop);
+    m_pauseSemaphore = m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::RestaurantPause);
+    m_loopSemaphore = m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::RestaurantEvent);
 
     m_replyMQ = nullptr;
     m_restaurationMQ = GetRestaurantMQ(getpid(), true);
@@ -66,17 +67,17 @@ void RestaurantProc::pCloseImpl() {
 
     m_restaurationMQ = nullptr;
     m_replyMQ = nullptr;
-    m_restaurantSemaphore = nullptr;
+    m_pauseSemaphore = nullptr;
 
     pLogMessage("Restauracja konczy prace!");
 }
 
 void RestaurantProc::CloseAttraction() {
     pLogMessage("Zamykanie restauracji!");
-    m_restaurantSemaphore->SetValue(0);
+    m_pauseSemaphore->SetValue(0);
 }
 
 void RestaurantProc::OpenAttraction() {
     pLogMessage("Otwieranie restauracji!");
-    m_restaurantSemaphore->SetValue(1);
+    m_pauseSemaphore->SetValue(1);
 }
