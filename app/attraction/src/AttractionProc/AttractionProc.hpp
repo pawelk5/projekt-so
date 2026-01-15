@@ -24,11 +24,15 @@ protected:
 
 private:
     void pHandleAttraction();
+    void pHandleRegisterMQ();
 
 private:
     int m_attractionID;
-    Semaphore m_attractionSemaphore;
+    Semaphore m_pauseSemaphore;
 
     AttractionMQ m_attractionMQ;
     ClientMQ m_replyMQ;
+
+private:
+    std::vector<AttractionMQMessage> m_enterQueue;
 };

@@ -86,7 +86,7 @@ void MainProc::pCloseImpl() {
 }
 
 void MainProc::pOpenAllLoopSemaphores() {
-    for (int id = (int)MainSemaphoreArray::CashierLoop; id <= (int)MainSemaphoreArray::RestaurantLoop; id++) {
+    for (int id = (int)MainSemaphoreArray::CashierEvent; id <= (int)MainSemaphoreArray::RestaurantEvent; id++) {
         auto semaphore = m_semaphoreArray->GetSemaphore(id);
         semaphore->Signal();
     }

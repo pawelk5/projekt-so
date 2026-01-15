@@ -51,7 +51,7 @@ void CashierProc::pInitImpl() {
     });
 
     m_registerQueue = GetRegisterMQ(m_sharedMemory->GetData()->cashierPID, true);
-    m_loopSemaphore = m_semaphoreArray->GetSemaphore((uint16_t) MainSemaphoreArray::CashierLoop);
+    m_loopSemaphore = m_semaphoreArray->GetSemaphore((uint16_t) MainSemaphoreArray::CashierEvent);
     m_clientCounter = 0;
     pSetProcessRole(ProcessRole::CASHIER);
 

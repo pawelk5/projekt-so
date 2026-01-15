@@ -5,7 +5,6 @@
 #include "SimulationData.hpp"
 #include <string>
 
-
 static volatile bool paused = false;
 
 void SigUsr1(int sig) {
@@ -14,18 +13,17 @@ void SigUsr1(int sig) {
 }
 
 void SigUsr2(int sig) {
-    paused = false;
     AttractionProc::Get().OpenAttraction();
 }
 
 void AttractionProc::CloseAttraction() {
     pLogMessage("Zamykanie atrakcji " + std::to_string(m_attractionID) + "!");
-    m_attractionSemaphore->SetValue(0);
+    m_pauseSemaphore->SetValue(0);
 }
 
 void AttractionProc::OpenAttraction() {
     pLogMessage("Otwieranie atrakcji " + std::to_string(m_attractionID) + "!");
-    m_attractionSemaphore->SetValue(1);
+    m_pauseSemaphore->SetValue(1);
 }
 
 AttractionProc::AttractionProc()
@@ -61,8 +59,8 @@ void AttractionProc::pInitImpl() {
             throw std::runtime_error("all atractions already exist!");
     });
 
-    m_attractionSemaphore = m_semaphoreArray->GetSemaphore(
-        (uint16_t) MainSemaphoreArray::Attraction1Loop + m_attractionID);
+    m_pauseSemaphore = m_semaphoreArray->GetSemaphore(
+        (uint16_t) MainSemaphoreArray::Attraction1Pause + m_attractionID);
 
     m_replyMQ = nullptr;
     m_attractionMQ = GetAttractionMQ(getpid(), true);
@@ -80,7 +78,8 @@ void AttractionProc::Run() {
 
         // attraction was closed, wait for signal to open
         if (paused)
-            m_attractionSemaphore->Wait(1, true);
+            m_pauseSemaphore->Wait(1, true);
+        paused = false;
     }
 }
 

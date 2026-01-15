@@ -19,6 +19,9 @@ ClientProc& ClientProc::Get() {
 }
 
 void ClientProc::Run() {
+    if (!m_sharedMemory->GetData()->isOpen)
+        return;
+    
     if (!pCreateReplyMQ())
         return;
     m_enteredPark = pEnterPark();
@@ -77,7 +80,7 @@ void ClientProc::pLeavePark() {
     bool result = pSendRegisterMQMessage(exitMsg, false);
     m_registerMQ = nullptr;
     
-    m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::CashierLoop)->Signal();
+    m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::CashierEvent)->Signal();
 
     if (!result || !m_clientQueue) {
         pLogMessage("Wychodzi z parku, nie mogl sie polaczyc z kolejka komunikatow kasy!");
@@ -120,7 +123,7 @@ bool ClientProc::pEnterPark() {
         return false;
     
     m_registerMQ = nullptr; 
-    m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::CashierLoop)->Signal();
+    m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::CashierEvent)->Signal();
 
     auto msg = m_clientQueue->ReceiveMessage(true, 10);
     if (!msg)

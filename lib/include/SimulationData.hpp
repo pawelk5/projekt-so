@@ -7,9 +7,14 @@
 
 enum class MainSemaphoreArray : uint16_t {
     MainSharedMemorySemaphore,
-    CashierLoop,
-    Attraction1Loop,
-    RestaurantLoop = 17,
+    CashierEvent,
+    // pause semaphores for attractions
+    Attraction1Pause,
+    RestaurantPause = Attraction1Pause + ATTRACTION_COUNT - 1,
+
+    // event counter semaphores for attractions
+    Attraction1Event,
+    RestaurantEvent = Attraction1Event + ATTRACTION_COUNT - 1,
     Count
 };
 
