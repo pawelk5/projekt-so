@@ -43,7 +43,7 @@ void* LoggerThread(void* arg) {
             if (!t_logFiles.at(0).Write(msgStr))
                 throw std::runtime_error("write error");
 
-            if (msg->senderRole == ProcessRole::MAIN || (int)msg->senderRole >= 5)
+            if (msg->senderRole == ProcessRole::MAIN || (int)msg->senderRole >= t_logFiles.size())
                 continue;
 
             if (!t_logFiles.at((int)msg->senderRole).Write(msgStr))

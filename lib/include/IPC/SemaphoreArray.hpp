@@ -33,6 +33,10 @@ public:
         /// \returns semaphore value, -1 if an error occured
         int GetValue();
 
+        /// Gets semaphore id
+        /// \returns semaphore index in semaphore array
+        int GetSemaphoreID();
+
         SemaphoreStruct(SemaphoreStruct&& s) = default;
         SemaphoreStruct(SemaphoreArray& semArray, int semID);
 

@@ -21,7 +21,7 @@ protected:
 
 private:
     Semaphore m_pauseSemaphore;
-    Semaphore m_loopSemaphore;
+    Semaphore m_eventSemaphore;
 
     RestaurantMQ m_restaurationMQ;
     ClientMQ m_replyMQ;

@@ -18,9 +18,28 @@ CashierProc& CashierProc::Get() {
     return app;
 }
 
+void CashierProc::pInitImpl() {
+    m_sharedMemory->GetSemLock().Execute([this]() {
+        if (!m_sharedMemory->GetData()->isOpen)
+            throw std::runtime_error("park is closed!");
+
+        if (m_sharedMemory->GetData()->cashierPID != 0)
+            throw std::runtime_error("cashier already exists!");
+
+        m_sharedMemory->GetData()->cashierPID = getpid();
+    });
+
+    m_registerQueue = GetRegisterMQ(m_sharedMemory->GetData()->cashierPID, true);
+    m_eventSemaphore = m_semaphoreArray->GetSemaphore((uint16_t) MainSemaphoreArray::CashierEvent);
+    m_clientCounter = 0;
+    pSetProcessRole(ProcessRole::CASHIER);
+
+    pLogMessage("Kasa rozpoczyna prace!");
+}
+
 void CashierProc::Run() {
     while (m_sharedMemory->GetData()->isOpen || m_clients.size() > 0) {
-        m_loopSemaphore->Wait(1, true);
+        m_eventSemaphore->Wait(1, true);
         pHandleRegisterMQ();
 
         while (m_enterVipQueue.size() > 0 && m_sharedMemory->GetData()->isOpen) {
@@ -39,25 +58,6 @@ void CashierProc::Run() {
     }
 }
 
-void CashierProc::pInitImpl() {
-    m_sharedMemory->GetSemLock().Execute([this]() {
-        if (!m_sharedMemory->GetData()->isOpen)
-            throw std::runtime_error("park is closed!");
-
-        if (m_sharedMemory->GetData()->cashierPID != 0)
-            throw std::runtime_error("cashier already exists!");
-
-        m_sharedMemory->GetData()->cashierPID = getpid();
-    });
-
-    m_registerQueue = GetRegisterMQ(m_sharedMemory->GetData()->cashierPID, true);
-    m_loopSemaphore = m_semaphoreArray->GetSemaphore((uint16_t) MainSemaphoreArray::CashierEvent);
-    m_clientCounter = 0;
-    pSetProcessRole(ProcessRole::CASHIER);
-
-    pLogMessage("Kasa rozpoczyna prace!");
-}
-
 void CashierProc::pCloseImpl() {
     m_sharedMemory->GetSemLock().Execute([this]() {     
         if (m_sharedMemory->GetData()->cashierPID == getpid()) 
@@ -71,7 +71,7 @@ void CashierProc::pCloseImpl() {
 }
 
 void CashierProc::pHandleRegisterMQ() {
-    auto registerMsg = m_registerQueue->ReceiveMessage(true, 1);
+    auto registerMsg = m_registerQueue->ReceiveMessage(true, DEFAULT_MQ_TIMEOUT);
     if (!registerMsg)
         return;
 
@@ -130,7 +130,7 @@ void CashierProc::pHandleExitPark(const RegisterMQMessage& message) {
         if (!pSendReply(replyPID, replyMsg))
             throw std::runtime_error("Nie mozna bylo wyslac odpowiedzi do klienta!");
 
-        auto msg = m_replyMQ->ReceiveMessage(true, 1);
+        auto msg = m_replyMQ->ReceiveMessage(true, DEFAULT_MQ_TIMEOUT);
         // no ack message
         if (!msg)
             throw std::runtime_error("Klient nie wyslal potwierdzenia rachunku!");
@@ -174,7 +174,7 @@ bool CashierProc::pRegisterClient(const RegisterMQMessage& message) {
         if (!allowed)
             return true;
 
-        auto msg = m_replyMQ->ReceiveMessage(true, 1);
+        auto msg = m_replyMQ->ReceiveMessage(true, DEFAULT_MQ_TIMEOUT);
         // no ack message
         if (!msg)
             return true;
@@ -235,5 +235,5 @@ bool CashierProc::pSendReply(pid_t pid, const ClientMQMessage& msg) {
                 return true;
             }
             return false;
-        }, true, 0, 1);
+        }, true, 0, DEFAULT_MQ_TIMEOUT);
 }

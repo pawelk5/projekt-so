@@ -1,6 +1,8 @@
 #pragma once
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <vector>
+#include "AttractionHandler.hpp"
 #include "Process.hpp"
 #include "MessageTypes/AttractionMQ.hpp"
 #include "MessageTypes/ClientMQ.hpp"
@@ -24,15 +26,22 @@ protected:
 
 private:
     void pHandleAttraction();
-    void pHandleRegisterMQ();
+    void pHandleAttractionMQ();
+
+    void pHandleEnterAttraction(const AttractionMQMessage& message);
+    void pRemoveClient(pid_t pid);
 
 private:
     int m_attractionID;
     Semaphore m_pauseSemaphore;
+    Semaphore m_eventSemaphore;
 
     AttractionMQ m_attractionMQ;
     ClientMQ m_replyMQ;
 
 private:
     std::vector<AttractionMQMessage> m_enterQueue;
+
+private:
+    std::vector<AttractionHandler> m_attractionHandlers;
 };
