@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <sys/types.h>
 #include "Config/Config.hpp"
-
+#include "Config/AttractionData.hpp"
 
 enum class MainSemaphoreArray : uint16_t {
     MainSharedMemorySemaphore,
@@ -18,6 +18,7 @@ enum class MainSemaphoreArray : uint16_t {
 
     // attraction handler semaphores (client leave semaphores)
     AttractionHandler1,
+    RestaurantHandler = AttractionHandler1 + HandlerCount - 1,
     Count
 };
 

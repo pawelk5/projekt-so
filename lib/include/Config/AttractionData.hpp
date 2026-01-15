@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <numeric>
 
 struct __AttractionConfig {
     int duration;
@@ -82,3 +83,13 @@ constexpr std::array<__AttractionConfig, 17> AttractionConfig = {
         .handlerCount=1, .canLeave=true
     }
 };
+
+constexpr int HandlerCount = 
+    std::accumulate(
+        AttractionConfig.begin(),
+        AttractionConfig.end(),
+        0,
+        [] (int sum, const __AttractionConfig& cfg) {
+            return sum + cfg.handlerCount;
+        }
+    );
