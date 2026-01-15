@@ -22,6 +22,14 @@
 #define RESTAURANT_LOG_PATH "restaurant.log"
 #define CLIENT_LOG_PATH "client.log"
 
+#define PARK_SIZE 100
+#define VIP_PROB 0.01
+#define CHILD_PROB 0.6
+#define CLIENT_SPAWN_TIME_MIN 25000
+#define CLIENT_SPAWN_TIME_MAX 250000
+#define CLIENT_MQ_TIMEOUT 10
+#define DEFAULT_MQ_TIMEOUT 1
+
 constexpr const char* logFileNames[5] = {
     MAIN_LOG_PATH,
     CASHIER_LOG_PATH,
@@ -30,16 +38,10 @@ constexpr const char* logFileNames[5] = {
     CLIENT_LOG_PATH
 };
 
-#define PARK_SIZE 100
-#define VIP_PROB 0.01
-#define CHILD_PROB 0.6
-#define CLIENT_SPAWN_TIME_MIN 25000
-#define CLIENT_SPAWN_TIME_MAX 250000
-
-
-
-
 /// CONFIG CHECK
+static_assert(CLIENT_MQ_TIMEOUT >= 0, "czas timeoutu klienta w kolejce jest mniejszy od zera!");
+static_assert(DEFAULT_MQ_TIMEOUT >= 0, "czas timeoutu kas/atrakcji jest mniejszy od zera!");
+
 static_assert(CLIENT_SPAWN_TIME_MIN > 0, "minimalny czas tworzenia klientow musi byc wiekszy od 0");
 static_assert(CLIENT_SPAWN_TIME_MIN <= CLIENT_SPAWN_TIME_MAX, "minimalny czas tworzenia klientow jest wiekszy od maksymalnego czasu");
 static_assert(PARK_SIZE > 0, "rozmiar parku musi byc wiekszy od 0");

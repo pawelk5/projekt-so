@@ -33,7 +33,7 @@ private:
 private:
     RegisterMQ m_registerQueue;
     ClientMQ m_replyMQ;
-    Semaphore m_loopSemaphore;
+    Semaphore m_eventSemaphore;
 
 private:
     struct ClientData {

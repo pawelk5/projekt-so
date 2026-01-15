@@ -87,7 +87,7 @@ void ClientProc::pLeavePark() {
         return;
     }
 
-    auto msg = m_clientQueue->ReceiveMessage(true, 5);
+    auto msg = m_clientQueue->ReceiveMessage(true, CLIENT_MQ_TIMEOUT);
     if (!msg) {
         pLogMessage("Wychodzi z parku bez odebrania rachunku (nie mogl stworzyc kolejki odpowiedzi)!");
         return;
@@ -125,7 +125,7 @@ bool ClientProc::pEnterPark() {
     m_registerMQ = nullptr; 
     m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::CashierEvent)->Signal();
 
-    auto msg = m_clientQueue->ReceiveMessage(true, 10);
+    auto msg = m_clientQueue->ReceiveMessage(true, CLIENT_MQ_TIMEOUT);
     if (!msg)
         return false;
 
@@ -176,5 +176,5 @@ bool ClientProc::pSendRegisterMQMessage(const RegisterMQMessage& msg, bool timeo
             return true;
         }
         return false;
-    }, true, 0, timeout ? 10 : -1);    
+    }, true, 0, timeout ? CLIENT_MQ_TIMEOUT : -1);    
 }

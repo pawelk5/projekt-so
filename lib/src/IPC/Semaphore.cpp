@@ -20,3 +20,7 @@ bool SemaphoreArray::SemaphoreStruct::SetValue(int16_t value) {
 int SemaphoreArray::SemaphoreStruct::GetValue() {
     return m_semArray.get().SemGetValue(m_semID);
 }
+
+int SemaphoreArray::SemaphoreStruct::GetSemaphoreID() {
+    return m_semID;
+}
