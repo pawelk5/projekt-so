@@ -161,10 +161,9 @@ public:
 
         auto dst = std::make_shared<MessageType>();
         int result = 0;
-        
+        auto ts = CreateTimestamp(timeout);
         do {
             if (timeout > 0) {
-                auto ts = CreateTimestamp(timeout);
                 result = mq_timedreceive(m_msqID, (char*)(&(*dst)), sizeof(MessageType), NULL, &ts);
             }
             else {

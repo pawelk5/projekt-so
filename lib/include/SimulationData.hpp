@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <cstdint>
+#include <map>
 #include <sys/types.h>
 #include "Config/Config.hpp"
 #include <numeric>
@@ -123,3 +124,18 @@ struct SimulationData {
 /// Returns the semaphore ID of the first handler associated with an attraction
 /// \param attractionIndex index of the attraction
 int GetFirstHandlerSemaphoreID(size_t attractionIndex);
+
+enum class TicketType : int {
+    H2,
+    H4,
+    H6,
+    H24,    
+    VIP
+};
+
+struct __TicketData {
+    int time;
+    float price;
+};
+
+extern const std::map<TicketType, __TicketData> TicketConfig;

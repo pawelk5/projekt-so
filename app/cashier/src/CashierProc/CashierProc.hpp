@@ -27,7 +27,7 @@ private:
     void pHandleExitPark(const RegisterMQMessage& message);
     bool pRegisterClient(const RegisterMQMessage& message);
 
-    float pCalculatePrice(pid_t pid);
+    float pCalculatePrice(pid_t pid, bool usedRestaurant);
     bool pCreateReplyMQ(pid_t pid);
     bool pSendReply(pid_t pid, const ClientMQMessage& msg);
     

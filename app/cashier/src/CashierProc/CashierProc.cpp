@@ -122,7 +122,7 @@ void CashierProc::pHandleExitPark(const RegisterMQMessage& message) {
         ClientMQMessage replyMsg;
         replyMsg.senderPID = getpid();
         replyMsg.mType = ClientMessageType::BILL;
-        replyMsg.content = Bill{ .price = pCalculatePrice(replyPID) };
+        replyMsg.content = Bill{ .price = pCalculatePrice(replyPID, msgContent.visitedRestaurant) };
         
         if (!pCreateReplyMQ(replyPID))
             return;
@@ -203,8 +203,27 @@ bool CashierProc::pRegisterClient(const RegisterMQMessage& message) {
     return true;
 }
 
-float CashierProc::pCalculatePrice(pid_t pid) {
-    return 10.f;
+float CashierProc::pCalculatePrice(pid_t pid, bool usedRestaurant) {
+    const auto ct_clientData = m_clients.at(pid);
+    const auto ct_ticketData = TicketConfig.at(m_clients.at(pid).ticketType);
+    float price = ct_ticketData.price;
+
+    if (usedRestaurant)
+        price *= 1.1f;
+
+    // overtime
+    int overtime = (ct_clientData.entryTime + ct_ticketData.time) - time(NULL);
+
+    if (overtime > 0) {
+        float mfactor = 1.0f + (float)overtime / ct_ticketData.time;
+        price *= mfactor;
+    }
+
+    // ticket for child
+    if (ct_clientData.hasChild)
+        price *= 1.5f;
+
+    return price;
 }
 
 void CashierProc::pRemoveClient(pid_t pid) {

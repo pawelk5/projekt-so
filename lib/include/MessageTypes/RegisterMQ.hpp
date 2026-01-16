@@ -2,14 +2,7 @@
 #include <variant>
 #include <memory>
 #include "IPC/MessageQueue.hpp"
-
-enum class TicketType : int {
-    H2,
-    H4,
-    H6,
-    H24,    
-    VIP
-};
+#include "SimulationData.hpp"
 
 struct EnterPark {
     bool hasChild;
