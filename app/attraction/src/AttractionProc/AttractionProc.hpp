@@ -15,7 +15,7 @@ public:
 
     ~AttractionProc();
     
-    int GetAttractionID();
+    uint16_t GetAttractionID();
     
     void CloseAttraction();
     void OpenAttraction();
@@ -32,7 +32,12 @@ private:
     void pRemoveClient(pid_t pid);
 
 private:
-    int m_attractionID;
+    bool pCreateReplyMQ(pid_t pid);
+    bool pRegisterClient(const AttractionMQMessage& message);
+    bool pSendReply(pid_t pid, const ClientMQMessage& msg);
+
+private:
+    uint16_t m_attractionID;
     Semaphore m_pauseSemaphore;
     Semaphore m_eventSemaphore;
 
@@ -44,4 +49,6 @@ private:
 
 private:
     std::vector<AttractionHandler> m_attractionHandlers;
+    std::vector<int> m_semaphoreHandlerIDArray;
+
 };

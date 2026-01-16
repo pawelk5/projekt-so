@@ -49,6 +49,7 @@ void RestaurantProc::pInitImpl() {
 
     m_pauseSemaphore = m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::RestaurantPause);
     m_eventSemaphore = m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::RestaurantEvent);
+    m_handlerSemaphore = m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::RestaurantHandler);
 
     m_replyMQ = nullptr;
     m_restaurationMQ = GetRestaurantMQ(getpid(), true);

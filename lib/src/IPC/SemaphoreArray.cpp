@@ -69,8 +69,9 @@ void SemaphoreArray::pGenerateSemaphores(uint16_t nSems) {
 }
 
 bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, bool semundo, int timeout) {
-    if (m_semData.isEmpty() || semID < 0 || semID >= m_semaphores.size())
+    if (m_semData.isEmpty() || semID < 0 || semID >= m_semaphores.size() || timeout < -1)
         return false;
+
 
     sembuf action;
     action.sem_op = value;

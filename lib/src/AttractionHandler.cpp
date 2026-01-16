@@ -1,4 +1,5 @@
 #include "AttractionHandler.hpp"
+#include "Utils.hpp"
 #include <algorithm>
 #include <ctime>
 
@@ -40,10 +41,7 @@ bool AttractionHandler::Finished() {
 }
 
 bool AttractionHandler::AddClient(pid_t pid) {
-    if (std::find(
-        m_data.clientList.begin(),
-        m_data.clientList.end(),
-        pid) != m_data.clientList.end())
+    if (Contains(m_data.clientList, pid))
         return false;
 
     m_data.clientList.push_back(pid);

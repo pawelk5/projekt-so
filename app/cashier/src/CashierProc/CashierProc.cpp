@@ -42,13 +42,13 @@ void CashierProc::Run() {
         m_eventSemaphore->Wait(1, true);
         pHandleRegisterMQ();
 
-        while (m_enterVipQueue.size() > 0 && m_sharedMemory->GetData()->isOpen) {
+        while (m_enterVipQueue.size() > 0 || !m_sharedMemory->GetData()->isOpen) {
             if (!pRegisterClient(m_enterVipQueue[0]))
                 break;
             m_enterVipQueue.erase(m_enterVipQueue.begin());
         }
 
-        while (m_enterVipQueue.size() == 0 && m_enterQueue.size() > 0 && m_sharedMemory->GetData()->isOpen) {
+        while ((m_enterVipQueue.size() == 0 && m_enterQueue.size() > 0) || !m_sharedMemory->GetData()->isOpen) {
             if (!pRegisterClient(m_enterQueue[0]))
                 break;
             m_enterQueue.erase(m_enterQueue.begin());
@@ -157,12 +157,12 @@ bool CashierProc::pRegisterClient(const RegisterMQMessage& message) {
         if (m_sharedMemory->GetData()->parkSize < m_clientCounter + (msgContent.hasChild + 1))
             return false;
 
-        bool allowed = m_sharedMemory->GetData()->isOpen;
-
         ClientMQMessage replyMsg;
         replyMsg.senderPID = getpid();
         replyMsg.mType = ClientMessageType::ENTRY_PERMIT;
-        replyMsg.content = EntryPermit{ .allowed = allowed };
+
+        bool allowed = m_sharedMemory->GetData()->isOpen;
+        replyMsg.content = ParkEntryPermit{ .allowed = allowed };
 
         if (!pCreateReplyMQ(replyPID))
             return true;
@@ -216,7 +216,7 @@ void CashierProc::pRemoveClient(pid_t pid) {
 }
 
 bool CashierProc::pCreateReplyMQ(pid_t pid) {
-    m_replyMQ = GetClientMQ(pid, false, [this, pid] {
+    m_replyMQ = GetClientParkMQ(pid, false, [this, pid] {
         if (errno == ENOENT) {
             pLogMessage("Klient " + std::to_string(pid) + " przestal dzialac przed odebraniem wiadomosci z kasy!");
             return true;

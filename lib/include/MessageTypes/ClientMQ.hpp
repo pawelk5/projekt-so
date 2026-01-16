@@ -6,11 +6,12 @@
 
 enum class ClientMessageType : int {
     ENTRY_PERMIT,
+    ATTRACTION_ENTRY_PERMIT,
     BILL,
     ACK
 };
 
-using ClientMessageContent = std::variant<EntryPermit, Bill, EmptyMessage>;
+using ClientMessageContent = std::variant<ParkEntryPermit, AttractionEntryPermit, Bill, EmptyMessage>;
 
 struct ClientMQMessage {
     pid_t senderPID;

@@ -30,6 +30,7 @@ private:
     float pCalculatePrice(pid_t pid);
     bool pCreateReplyMQ(pid_t pid);
     bool pSendReply(pid_t pid, const ClientMQMessage& msg);
+    
 private:
     RegisterMQ m_registerQueue;
     ClientMQ m_replyMQ;

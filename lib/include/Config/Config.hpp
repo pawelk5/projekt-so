@@ -22,13 +22,13 @@
 #define RESTAURANT_LOG_PATH "restaurant.log"
 #define CLIENT_LOG_PATH "client.log"
 
-#define PARK_SIZE 100
-#define VIP_PROB 0.01
-#define CHILD_PROB 0.6
-#define CLIENT_SPAWN_TIME_MIN 25000
-#define CLIENT_SPAWN_TIME_MAX 250000
-#define CLIENT_MQ_TIMEOUT 10
-#define DEFAULT_MQ_TIMEOUT 1
+constexpr int PARK_SIZE = 100;
+constexpr float VIP_PROB = 0.01;
+constexpr float CHILD_PROB = 0.6;
+constexpr int CLIENT_SPAWN_TIME_MIN = 25000;
+constexpr int CLIENT_SPAWN_TIME_MAX = 250000;
+constexpr int CLIENT_MQ_TIMEOUT = 10;
+constexpr int DEFAULT_MQ_TIMEOUT = 1;
 
 constexpr const char* logFileNames[5] = {
     MAIN_LOG_PATH,

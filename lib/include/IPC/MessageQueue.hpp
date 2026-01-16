@@ -110,7 +110,7 @@ public:
     /// \returns false if message queue is not initialized or timed out/interrupted or message was handled by errorHandler
     /// \throws if error occurs while sending a message and is not handled by errorHandler
     bool SendMessage(const MessageType& msg, const std::function<bool()>& errorHandler, bool retryOnInterrupt = true, int priority = 0, int timeout = -1) {
-        if (m_msqID == -1)
+        if (m_msqID == -1 || timeout < -1)
             return false;
 
         int result = 0;
@@ -156,7 +156,7 @@ public:
     /// \returns pointer to message or nullptr if timed out/interrupted
     /// \throws if error occurs while receiving a message
     std::shared_ptr<MessageType> ReceiveMessage(bool retryOnInterrupt = true, int timeout = -1) {
-        if (m_msqID == -1)
+        if (m_msqID == -1 || timeout < -1)
             return nullptr;
 
         auto dst = std::make_shared<MessageType>();

@@ -22,7 +22,7 @@ void ClientProc::Run() {
     if (!m_sharedMemory->GetData()->isOpen)
         return;
     
-    if (!pCreateReplyMQ())
+    if (!pCreateParkReplyMQ())
         return;
     m_enteredPark = pEnterPark();
     m_clientQueue = nullptr;
@@ -34,7 +34,7 @@ void ClientProc::Run() {
     // klient jest w parku
     sleep(5);
 
-    pCreateReplyMQ();
+    pCreateParkReplyMQ();
     pLeavePark();
     m_clientQueue = nullptr;
 }
@@ -52,7 +52,7 @@ void ClientProc::pInitImpl() {
 
 void ClientProc::pCloseImpl() {
     if (m_enteredPark){
-        pCreateReplyMQ();
+        pCreateParkReplyMQ();
         pLeavePark();
     }
 
@@ -132,7 +132,7 @@ bool ClientProc::pEnterPark() {
     if (msg->mType != ClientMessageType::ENTRY_PERMIT)
         return false;
 
-    auto reply = std::get<EntryPermit>(msg->content);
+    auto reply = std::get<ParkEntryPermit>(msg->content);
 
     if (!reply.allowed)
         return false;
@@ -144,8 +144,8 @@ bool ClientProc::pEnterPark() {
     return m_clientQueue->SendMessage(ackMsg);
 }
 
-bool ClientProc::pCreateReplyMQ() {
-    m_clientQueue = GetClientMQ(getpid(), true, [this] {
+bool ClientProc::pCreateParkReplyMQ() {
+    m_clientQueue = GetClientParkMQ(getpid(), true, [this] {
         if (errno == ENOSPC) {
             pLogMessage("BLAD: Za duzo kolejek komunikatow w systemie!");
             return true;

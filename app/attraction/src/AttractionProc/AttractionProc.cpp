@@ -2,8 +2,10 @@
 #include "IPC/Signal.hpp"
 #include "MessageTypes/AttractionMQ.hpp"
 #include "MessageTypes/LoggerMQ.hpp"
+#include "MessageTypes/SharedMessageTypes.hpp"
 #include "PredefinedMQ.hpp"
 #include "SimulationData.hpp"
+#include <cstdint>
 #include <string>
 #include <iostream>
 
@@ -66,6 +68,10 @@ void AttractionProc::pInitImpl() {
     m_eventSemaphore = m_semaphoreArray->GetSemaphore(
         (uint16_t) MainSemaphoreArray::AttractionEvent1 + GetAttractionID());
 
+    m_semaphoreHandlerIDArray.reserve(AttractionConfig.at(GetAttractionID()).handlerCount);
+    for (int i = 0; i < AttractionConfig.at(GetAttractionID()).handlerCount; i++)
+        m_semaphoreHandlerIDArray.push_back((uint16_t) GetFirstHandlerSemaphoreID(GetAttractionID()) + i);
+
     m_replyMQ = nullptr;
     m_attractionMQ = GetAttractionMQ(getpid(), true);
     if (!m_attractionMQ)
@@ -78,7 +84,16 @@ void AttractionProc::pInitImpl() {
 
 void AttractionProc::Run() {
     while (m_sharedMemory->GetData()->isOpen) {
+        m_eventSemaphore->Wait(1, true);
         pHandleAttraction();
+
+        while ((m_attractionHandlers.size() < AttractionConfig.at(GetAttractionID()).handlerCount &&
+                m_enterQueue.size() > 0)
+                || !m_sharedMemory->GetData()->isOpen) {
+            if (!pRegisterClient(m_enterQueue[0]))
+                break;
+            m_enterQueue.erase(m_enterQueue.begin());
+        }
 
         // attraction was closed, wait for signal to open
         if (paused)
@@ -120,11 +135,76 @@ void AttractionProc::pHandleAttractionMQ() {
 }
 
 void AttractionProc::pRemoveClient(pid_t pid) {
-    ;
+    for (auto& handler : m_attractionHandlers) {
+        if (handler.RemoveClient(pid))
+            break;
+    }
+}
+
+bool AttractionProc::pCreateReplyMQ(pid_t pid) {
+    m_replyMQ = GetClientAttractionMQ(pid, GetAttractionID(), false, [this, pid] {
+        if (errno == ENOENT)
+            return true;
+        return false;
+    });
+
+    return m_replyMQ != nullptr;
+}
+
+bool AttractionProc::pRegisterClient(const AttractionMQMessage& message) {
+    auto replyPID = message.senderPID;
+    try {
+        auto msgContent = std::get<EnterAttraction>(message.content);
+
+        ClientMQMessage replyMsg;
+        replyMsg.senderPID = getpid();
+        replyMsg.mType = ClientMessageType::ATTRACTION_ENTRY_PERMIT;
+
+        bool allowed = m_sharedMemory->GetData()->isOpen;
+        replyMsg.content = AttractionEntryPermit{ .allowed = allowed, .leaveSemaphoreID = GetAttractionID() };
+
+        if (!pCreateReplyMQ(replyPID))
+            return true;
+
+        if (!pSendReply(replyPID, replyMsg))
+            return true;
+
+        // dont wait for ack message
+        if (!allowed)
+            return true;
+
+        auto msg = m_replyMQ->ReceiveMessage(true, DEFAULT_MQ_TIMEOUT);
+        // no ack message
+        if (!msg)
+            return true;
+
+        if (msg->mType == ClientMessageType::ACK) {
+            // TODO
+            
+        }
+    } catch (const std::exception& e) {
+        // client left the queue before response
+        pLogMessage("Przy obsludze klienta " + std::to_string(replyPID) + " nastapil blad w komunikacji!");
+        pLogMessage((std::string)"BLAD: " + e.what());
+    }
+
+    m_replyMQ = nullptr;
+    return true;
 }
 
 void AttractionProc::pHandleEnterAttraction(const AttractionMQMessage& message) {
     m_enterQueue.push_back(message);
+}
+
+bool AttractionProc::pSendReply(pid_t pid, const ClientMQMessage& msg) {
+    return m_replyMQ->SendMessage(msg,
+        [this, pid] {
+            if (errno == EBADF) {
+                pLogMessage("Klient " + std::to_string(pid) + " opuscil kolejke przed odebraniem wiadomosci!");
+                return true;
+            }
+            return false;
+        }, true, 0, DEFAULT_MQ_TIMEOUT);
 }
 
 void AttractionProc::pCloseImpl() {
@@ -139,6 +219,6 @@ void AttractionProc::pCloseImpl() {
     pLogMessage("Atrakcja " + std::to_string(m_attractionID) + " konczy prace!");
 }
 
-int AttractionProc::GetAttractionID() {
+uint16_t AttractionProc::GetAttractionID() {
     return m_attractionID;
 }
