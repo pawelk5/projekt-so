@@ -47,6 +47,7 @@ bool CreateProcess(const char* procName, const char* path) {
     switch (fork()) {
     case -1:
         perror("fork error!");
+        throw std::runtime_error("fork error!");
         return false;
     case 0:
         if (execl(((std::string)path + procName).c_str(), procName, NULL) == -1) {

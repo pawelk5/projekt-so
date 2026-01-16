@@ -1,6 +1,7 @@
 #include "IPC/SemaphoreArray.hpp"
 #include "Utils.hpp"
 #include <cerrno>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <memory>
@@ -79,13 +80,17 @@ bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, 
     action.sem_flg = semundo ? SEM_UNDO : 0;
 
     bool leave = false;
+    auto tmspc = CreateTimestamp(timeout);
+
     while (true) {
         if (timeout == -1) {
             if (semop(m_semData.ID, &action, 1) != -1) 
                 return true;
         }
         else {
-            auto tmspc = CreateTimestamp(timeout);
+            if (tmspc.tv_sec < time(NULL))
+                return false;
+            
             if (semtimedop(m_semData.ID, &action, 1, &tmspc) != -1)
                 return true;
             
