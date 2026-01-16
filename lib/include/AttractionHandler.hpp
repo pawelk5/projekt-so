@@ -1,12 +1,20 @@
 #pragma once
 #include "IPC/SemaphoreArray.hpp"
+#include <map>
+
+struct __AttractionHandlerClientData {
+    bool hasChild;
+    bool fromPark; /// Only used with restaurant
+};
 
 struct AttractionHandlerData {
     Semaphore leaveSemaphore;
     int maxCientCount;
 
     int attractionDuration;
-    std::vector<pid_t> clientList;
+    std::map<pid_t, __AttractionHandlerClientData> clientList;
+
+    bool isRestaurant;
 };
 
 
@@ -19,10 +27,13 @@ public:
     time_t GetAttractionFinishTime();
 
     bool Finished();
-    bool AddClient(pid_t pid);
-    
+    bool AddClient(pid_t pid, bool hasChild, bool fromPark = true);
+    int GetClientCount();
+
+
     void StartAttraction();
     bool IsEmpty();
+
 
     AttractionHandler(const AttractionHandler&) = delete;
     AttractionHandler& operator= (const AttractionHandler&) = delete;

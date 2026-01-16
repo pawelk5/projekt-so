@@ -2,10 +2,12 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <vector>
+#include <map>
 #include "AttractionHandler.hpp"
 #include "Process.hpp"
 #include "MessageTypes/AttractionMQ.hpp"
 #include "MessageTypes/ClientMQ.hpp"
+#include "SimulationData.hpp"
 
 
 class AttractionProc : public Process {
@@ -15,7 +17,7 @@ public:
 
     ~AttractionProc();
     
-    uint16_t GetAttractionID();
+    int GetAttractionID();
     
     void CloseAttraction();
     void OpenAttraction();
@@ -33,11 +35,13 @@ private:
 
 private:
     bool pCreateReplyMQ(pid_t pid);
-    bool pRegisterClient(const AttractionMQMessage& message);
+    bool pCreateNewHandler();
+    bool pRegisterClient(const AttractionMQMessage& message, std::shared_ptr<AttractionHandler> handler);
     bool pSendReply(pid_t pid, const ClientMQMessage& msg);
+    time_t pGetNextTimeout();
 
 private:
-    uint16_t m_attractionID;
+    int m_attractionID;
     Semaphore m_pauseSemaphore;
     Semaphore m_eventSemaphore;
 
@@ -45,10 +49,11 @@ private:
     ClientMQ m_replyMQ;
 
 private:
-    std::vector<AttractionMQMessage> m_enterQueue;
+    __AttractionConfig cm_attractionConfig;
 
 private:
-    std::vector<AttractionHandler> m_attractionHandlers;
-    std::vector<int> m_semaphoreHandlerIDArray;
+    std::vector<AttractionMQMessage> m_enterQueue;
 
+    /// SEM ID : attraction handler map
+    std::map<uint16_t, std::shared_ptr<AttractionHandler>> m_attractionHandlers;
 };
