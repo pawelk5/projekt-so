@@ -1,11 +1,14 @@
 #include "AttractionProc.hpp"
+#include "AttractionHandler.hpp"
 #include "IPC/Signal.hpp"
 #include "MessageTypes/AttractionMQ.hpp"
 #include "MessageTypes/LoggerMQ.hpp"
 #include "MessageTypes/SharedMessageTypes.hpp"
 #include "PredefinedMQ.hpp"
 #include "SimulationData.hpp"
+#include "Utils.hpp"
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <iostream>
 
@@ -22,6 +25,9 @@ void SigUsr2(int sig) {
 
 void AttractionProc::CloseAttraction() {
     pLogMessage("Zamykanie atrakcji " + std::to_string(GetAttractionID()) + "!");
+    for (auto it = m_attractionHandlers.begin(); it != m_attractionHandlers.end(); ++it)
+        it->second = nullptr;
+
     m_pauseSemaphore->SetValue(0);
 }
 
@@ -35,6 +41,7 @@ AttractionProc::AttractionProc()
 { 
     ;
 }
+
 AttractionProc::~AttractionProc() { ; }
 
 AttractionProc& AttractionProc::Get() {
@@ -68,9 +75,10 @@ void AttractionProc::pInitImpl() {
     m_eventSemaphore = m_semaphoreArray->GetSemaphore(
         (uint16_t) MainSemaphoreArray::AttractionEvent1 + GetAttractionID());
 
-    m_semaphoreHandlerIDArray.reserve(AttractionConfig.at(GetAttractionID()).handlerCount);
-    for (int i = 0; i < AttractionConfig.at(GetAttractionID()).handlerCount; i++)
-        m_semaphoreHandlerIDArray.push_back((uint16_t) GetFirstHandlerSemaphoreID(GetAttractionID()) + i);
+    cm_attractionConfig = AttractionConfig.at(GetAttractionID());
+
+    for (int i = 0; i < cm_attractionConfig.handlerCount; i++)
+        m_attractionHandlers[GetFirstHandlerSemaphoreID(GetAttractionID()) + i] = nullptr;
 
     m_replyMQ = nullptr;
     m_attractionMQ = GetAttractionMQ(getpid(), true);
@@ -84,16 +92,8 @@ void AttractionProc::pInitImpl() {
 
 void AttractionProc::Run() {
     while (m_sharedMemory->GetData()->isOpen) {
-        m_eventSemaphore->Wait(1, true);
+        m_eventSemaphore->Wait(1, true, false, pGetNextTimeout());
         pHandleAttraction();
-
-        while ((m_attractionHandlers.size() < AttractionConfig.at(GetAttractionID()).handlerCount &&
-                m_enterQueue.size() > 0)
-                || !m_sharedMemory->GetData()->isOpen) {
-            if (!pRegisterClient(m_enterQueue[0]))
-                break;
-            m_enterQueue.erase(m_enterQueue.begin());
-        }
 
         // attraction was closed, wait for signal to open
         if (paused)
@@ -106,8 +106,17 @@ void AttractionProc::pHandleAttraction() {
     if (paused)
         return;
 
+    for (auto it = m_attractionHandlers.begin(); it != m_attractionHandlers.end(); ++it) {
+        if (!it->second)
+            continue;
+
+        if (it->second->Finished()) 
+            m_attractionHandlers[it->first] = nullptr;
+
+    }
+
     pHandleAttractionMQ();
-    sleep(1);
+    while (pCreateNewHandler()) { ; }
 }
 
 void AttractionProc::pHandleAttractionMQ() {
@@ -136,7 +145,10 @@ void AttractionProc::pHandleAttractionMQ() {
 
 void AttractionProc::pRemoveClient(pid_t pid) {
     for (auto& handler : m_attractionHandlers) {
-        if (handler.RemoveClient(pid))
+        if (!handler.second)
+            continue;
+
+        if (handler.second->RemoveClient(pid))
             break;
     }
 }
@@ -151,17 +163,53 @@ bool AttractionProc::pCreateReplyMQ(pid_t pid) {
     return m_replyMQ != nullptr;
 }
 
-bool AttractionProc::pRegisterClient(const AttractionMQMessage& message) {
+bool AttractionProc::pCreateNewHandler() {
+    int newHandlerID = -1;
+    for (auto& handler : m_attractionHandlers) {
+        if (!handler.second) {
+            newHandlerID = handler.first;
+            break;
+        }            
+    }
+    if (newHandlerID == -1)
+        return false;
+
+    AttractionHandlerData newHandlerData;
+    newHandlerData.leaveSemaphore = m_semaphoreArray->GetSemaphore(newHandlerID);
+    newHandlerData.maxCientCount = cm_attractionConfig.maxClientsPerHandler;
+
+    auto newHandler = std::make_shared<AttractionHandler>(newHandlerData);
+
+    while ((m_attractionHandlers.size() < cm_attractionConfig.handlerCount &&
+            m_enterQueue.size() > 0)
+            || !m_sharedMemory->GetData()->isOpen) {
+        if (!pRegisterClient(m_enterQueue[0], newHandler))
+            break;
+        m_enterQueue.erase(m_enterQueue.begin());
+    }
+
+    if (!newHandler->IsEmpty()) {
+        m_attractionHandlers[newHandlerID] = newHandler;
+        m_attractionHandlers[newHandlerID]->StartAttraction();
+    }
+
+    return true;
+}
+
+bool AttractionProc::pRegisterClient(const AttractionMQMessage& message, std::shared_ptr<AttractionHandler> handler) {
     auto replyPID = message.senderPID;
     try {
         auto msgContent = std::get<EnterAttraction>(message.content);
+
+        if (handler->GetClientCount() + 1 + msgContent.hasChild > cm_attractionConfig.maxClientsPerHandler)
+            return false;
 
         ClientMQMessage replyMsg;
         replyMsg.senderPID = getpid();
         replyMsg.mType = ClientMessageType::ATTRACTION_ENTRY_PERMIT;
 
         bool allowed = m_sharedMemory->GetData()->isOpen;
-        replyMsg.content = AttractionEntryPermit{ .allowed = allowed, .leaveSemaphoreID = GetAttractionID() };
+        replyMsg.content = AttractionEntryPermit{ .allowed = allowed, .leaveSemaphoreID = (uint16_t) GetAttractionID() };
 
         if (!pCreateReplyMQ(replyPID))
             return true;
@@ -174,13 +222,15 @@ bool AttractionProc::pRegisterClient(const AttractionMQMessage& message) {
             return true;
 
         auto msg = m_replyMQ->ReceiveMessage(true, DEFAULT_MQ_TIMEOUT);
+
         // no ack message
         if (!msg)
             return true;
 
         if (msg->mType == ClientMessageType::ACK) {
             // TODO
-            
+            pLogMessage("Klient " + std::to_string(replyPID) + " wchodzi do atrakcji" + std::to_string(GetAttractionID()) + "!");
+            handler->AddClient(replyPID, msgContent.hasChild);
         }
     } catch (const std::exception& e) {
         // client left the queue before response
@@ -219,6 +269,25 @@ void AttractionProc::pCloseImpl() {
     pLogMessage("Atrakcja " + std::to_string(m_attractionID) + " konczy prace!");
 }
 
-uint16_t AttractionProc::GetAttractionID() {
+int AttractionProc::GetAttractionID() {
     return m_attractionID;
+}
+
+time_t AttractionProc::pGetNextTimeout() {
+    time_t nextTimeout = -1;
+    for (auto& handler : m_attractionHandlers) {
+        if (!handler.second)
+            continue;
+
+        auto timeout = handler.second->GetAttractionFinishTime();
+        if (timeout == 0)
+            continue;
+        if (timeout < nextTimeout)
+            nextTimeout = timeout;
+    }
+
+    if (nextTimeout != -1)
+        return nextTimeout - time(NULL);
+
+    return nextTimeout;
 }

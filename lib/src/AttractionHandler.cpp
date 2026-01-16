@@ -1,7 +1,9 @@
 #include "AttractionHandler.hpp"
 #include "Utils.hpp"
 #include <algorithm>
+#include <numeric>
 #include <ctime>
+#include <utility>
 
 
 AttractionHandler::AttractionHandler(const AttractionHandlerData& param) 
@@ -18,18 +20,7 @@ AttractionHandler::~AttractionHandler() {
 }
 
 bool AttractionHandler::RemoveClient(pid_t pid) {
-    auto it = std::find(
-        m_data.clientList.begin(),
-        m_data.clientList.end(),
-        pid
-    );
-
-    if (it != m_data.clientList.end()) {
-        m_data.clientList.erase(it);
-        return true;
-    }
-
-    return false;
+    return m_data.clientList.erase(pid) == 1;
 }
 
 time_t AttractionHandler::GetAttractionFinishTime() {
@@ -40,11 +31,11 @@ bool AttractionHandler::Finished() {
     return time(NULL) >= m_finishTime;
 }
 
-bool AttractionHandler::AddClient(pid_t pid) {
+bool AttractionHandler::AddClient(pid_t pid, bool hasChild, bool fromPark) {
     if (Contains(m_data.clientList, pid))
         return false;
 
-    m_data.clientList.push_back(pid);
+    m_data.clientList[pid] = __AttractionHandlerClientData{ .hasChild = hasChild, .fromPark = fromPark };
     return true;
 }
 
@@ -60,4 +51,16 @@ bool AttractionHandler::IsEmpty() {
 
 const AttractionHandlerData& AttractionHandler::GetHandlerData() {
     return m_data;
+}
+
+int AttractionHandler::GetClientCount() {
+    return 
+        std::accumulate(
+            m_data.clientList.begin(),
+            m_data.clientList.end(),
+            0,
+            [] (int sum, const std::pair<pid_t, __AttractionHandlerClientData>& clData) {
+                return sum + 1 + clData.second.hasChild;
+            }
+        );
 }
