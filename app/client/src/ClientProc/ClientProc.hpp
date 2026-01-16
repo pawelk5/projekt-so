@@ -20,7 +20,7 @@ protected:
     void pLeavePark();
     bool pEnterPark();
 
-    bool pCreateReplyMQ();
+    bool pCreateParkReplyMQ();
     bool pGetRegisterMQ(bool blocking);
     bool pSendRegisterMQMessage(const RegisterMQMessage& msg, bool timeout);
 

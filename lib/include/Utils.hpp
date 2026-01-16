@@ -1,5 +1,7 @@
 #pragma once
 #include <ctime>
+#include <iterator>
+#include <algorithm>
 #include <string>
 #include <time.h>
 #include <array>
@@ -67,3 +69,14 @@ bool RandomChance(float prob);
 /// \returns random value in range [min; max]
 /// \note if min > max, returns 0
 int RandomInt(int min, int max);
+
+/// Returns true if array contains element
+/// \param array container supporting iterators
+/// \param element searched element
+template<class Container, class T>
+bool Contains(const Container& array, const T& element) {
+    return std::find(
+        std::begin(array),
+        std::end(array),
+        element) != std::end(array);
+}

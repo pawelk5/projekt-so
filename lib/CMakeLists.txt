@@ -16,6 +16,7 @@ add_library(${STATIC_LIBRARY} STATIC
     "src/File.cpp"
     "src/PredefinedMQ.cpp"
     "src/AttractionHandler.cpp"
+    "src/SimulationData.cpp"
 )
 
 target_compile_features(${STATIC_LIBRARY} PRIVATE cxx_std_20)

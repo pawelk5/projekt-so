@@ -19,19 +19,6 @@ RegisterMQ GetRegisterMQ(pid_t cashierPID, bool cashier, const std::function<boo
     return t_mq;
 }
 
-ClientMQ GetClientMQ(pid_t clientPID, bool client, const std::function<bool()>& errorHandler) {
-    ClientMQ t_mq = std::make_shared<MessageQueue<ClientMQMessage>>();
-    MessageQueueParams t_params;
-    t_params.blocking = false;
-    t_params.create = client;
-    t_params.msqName = std::to_string(clientPID) + "-client";
-    t_params.maxMsgCount = DEFAULT_MAX_MSQ_SIZE;
-
-    if (!t_mq->OpenMessageQueue(t_params, errorHandler))
-        return nullptr;
-    return t_mq;
-}
-
 LoggerMQ GetLoggerMQ(pid_t loggerPID, bool logger, const std::function<bool()>& errorHandler) {
     LoggerMQ t_mq = std::make_shared<MessageQueue<LoggerMQMessage>>();
     MessageQueueParams t_params;
@@ -69,4 +56,29 @@ RestaurantMQ GetRestaurantMQ(pid_t restaurantPID, bool worker, const std::functi
     if (!t_mq->OpenMessageQueue(t_params, errorHandler))
         return nullptr;
     return t_mq;
+}
+
+ClientMQ __GetClientMQ(pid_t clientPID, bool client, const std::function<bool()>& errorHandler, const std::string& suffix) {
+    ClientMQ t_mq = std::make_shared<MessageQueue<ClientMQMessage>>();
+    MessageQueueParams t_params;
+    t_params.blocking = false;
+    t_params.create = client;
+    t_params.msqName = std::to_string(clientPID) + "-client" + suffix;
+    t_params.maxMsgCount = DEFAULT_MAX_MSQ_SIZE;
+
+    if (!t_mq->OpenMessageQueue(t_params, errorHandler))
+        return nullptr;
+    return t_mq;
+}
+
+ClientMQ GetClientParkMQ(pid_t clientPID, bool client, const std::function<bool()>& errorHandler) {
+    return __GetClientMQ(clientPID, client, errorHandler, "-park");
+}
+
+ClientMQ GetClientAttractionMQ(pid_t clientPID, uint8_t attractionID, bool client, const std::function<bool()>& errorHandler) {
+    return __GetClientMQ(clientPID, client, errorHandler, "-attraction-" + std::to_string(attractionID));
+}
+
+ClientMQ GetClientRestaurantMQ(pid_t clientPID, bool client, const std::function<bool()>& errorHandler) {
+    return __GetClientMQ(clientPID, client, errorHandler, "-restaurant");
 }
