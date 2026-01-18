@@ -42,8 +42,8 @@ void ClientProc::Run() {
     pLogMessage((std::string)"Klient" + (m_data.isVip ? " vip" : "") + " wchodzi do parku!");
 
     while (time(NULL) < parkTime && m_sharedMemory->GetData()->isOpen && availableAttractions.size() > 0) {
+        int attractionID = availableAttractions.at(RandomInt(0, availableAttractions.size() - 1));
         try {
-            int attractionID = availableAttractions.at(RandomInt(0, availableAttractions.size() - 1));
             const auto ct_attractionConfig = AttractionConfig.at(attractionID);
             if (attractionID == RESTAURANT_INDEX) {
                 pCreateReplyMQ(GetClientRestaurantMQ);
@@ -72,17 +72,16 @@ void ClientProc::Run() {
                     } else {
                         pLogMessage("Klient wychodzi z atrakcji " + std::to_string(attractionID) + " (semop)");
                     }
-                    
-                    if (RandomChance(0.95)){
-                        availableAttractions.erase(
-                            std::find(availableAttractions.begin(),
-                                availableAttractions.end(),
-                                attractionID));
-                    }
                 }
             }
         } catch (std::exception e) {
             std::cerr << "Blad przy wchodzeniu do atrakcji!" << std::endl;
+        }
+        if (RandomChance(0.95)){
+            availableAttractions.erase(
+        std::find(availableAttractions.begin(),
+            availableAttractions.end(),
+            attractionID));
         }
 
         m_attractionMQ = nullptr;
