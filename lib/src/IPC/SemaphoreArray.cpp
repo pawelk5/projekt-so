@@ -9,6 +9,7 @@
 #include <sys/sem.h>
 #include <sys/types.h>
 #include <iostream>
+#include <unistd.h>
 
 SemaphoreArray::SemaphoreArray() 
     :m_isOwner(false), m_semData(-1, -1)
@@ -80,28 +81,31 @@ bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, 
     action.sem_flg = semundo ? SEM_UNDO : 0;
 
     bool leave = false;
-    auto tmspc = CreateTimestamp(timeout);
+    time_t endTime = time(NULL) + timeout;
+    auto tmspc = timespec{ .tv_sec=endTime - time(NULL), .tv_nsec = 0 };
+
     while (true) {
-        if (timeout == -1) {
-            if (semop(m_semData.ID, &action, 1) != -1) 
-                return true;
-        }
-        else {
-            if (tmspc.tv_sec < time(NULL))
-                return false;
-            
-            if (semtimedop(m_semData.ID, &action, 1, &tmspc) != -1)
-                return true;
-            
-            if (errno == EAGAIN)
-                return false;
-        }
-        if (errno == EINTR) {
-            if (retryOnInterrupt)
-                continue;
-            
+        int result;
+        if (timeout == -1)
+            result = semop(m_semData.ID, &action, 1);
+        else 
+            result = semtimedop(m_semData.ID, &action, 1, &tmspc);
+
+        if (result != -1)
+            return true;
+
+
+        if (endTime < time(NULL))
             return false;
-        }
+        else
+            tmspc.tv_sec = endTime - time(NULL);
+
+        if (errno == EINTR && !retryOnInterrupt)
+            return false;
+
+        if (errno == EAGAIN)
+            return false;
+
         perror("semop error");
         return false;
     }

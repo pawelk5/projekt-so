@@ -70,6 +70,9 @@ void ClientProc::pLeavePark(bool visitedRestaurant) {
     
     m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::CashierEvent)->Signal();
 
+    if (m_data.isVip)
+        return;
+
     if (!result || !m_clientQueue) {
         pLogMessage("Wychodzi z parku, nie mogl sie polaczyc z kolejka komunikatow kasy!");
         return;

@@ -64,7 +64,7 @@ void ClientProc::Run() {
                     else
                         attractionTime = ct_attractionConfig.duration;
                     auto attractionSem = m_semaphoreArray->GetSemaphore(semID);
-
+                    
                     if (!attractionSem->Wait(1, true, false, attractionTime)){
                         pLogMessage("Klient wychodzi z atrakcji " + std::to_string(attractionID) + " (timeout)");
                         if (pCreateAttractionReplyMQ((uint8_t)attractionID))
@@ -81,15 +81,16 @@ void ClientProc::Run() {
                     }
                 }
             }
-            m_attractionMQ = nullptr;
-            m_restaurantMQ = nullptr;
-            m_clientQueue = nullptr;
         } catch (std::exception e) {
             std::cerr << "Blad przy wchodzeniu do atrakcji!" << std::endl;
         }
-    }
 
-    pCreateReplyMQ(GetClientParkMQ);
+        m_attractionMQ = nullptr;
+        m_restaurantMQ = nullptr;
+        m_clientQueue = nullptr;
+    }
+    if (!m_data.isVip)
+        pCreateReplyMQ(GetClientParkMQ);
     pLeavePark(m_visitedRestaurant);
     m_clientQueue = nullptr;
 }
