@@ -22,7 +22,7 @@ ClientMQ GetClientParkMQ(pid_t clientPID, bool client = false, const std::functi
 /// \param client if true the function will create a new message queue instead of attaching existing one
 /// \param attractionID attraction id
 /// \param errorHandler function that allows to additionally handle certain errors. the function should return false if it fails to handle any error
-ClientMQ GetClientAttractionMQ(pid_t clientPID, uint8_t attractionID, bool client = false, const std::function<bool()>& errorHandler = [] { return false; });
+ClientMQ GetClientAttractionMQ(pid_t clientPID, short attractionID, bool client = false, const std::function<bool()>& errorHandler = [] { return false; });
 
 /// Create or attach client message queue (for client-restaurant communication)
 /// \param clientPID pid of the client process

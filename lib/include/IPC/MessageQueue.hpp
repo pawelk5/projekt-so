@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include "Config/Config.hpp"
-
+#include <iostream>
 
 /// Struct containing message queue parameters
 /// \param msqName message queue name. cannot contain '/' symbol
@@ -52,12 +52,15 @@ public:
         mqattr.mq_maxmsg = params.maxMsgCount;
 
         m_msqName = PARK_QUEUE_ID + params.msqName;
+
         m_msqID = mq_open(m_msqName.c_str(), O_RDWR | (params.create ? O_CREAT | O_EXCL : 0),
             0600, &mqattr);
         
         if (m_msqID == -1) {
             if (errorHandler())
                 return false;
+            std::cout << m_msqName.c_str() << ", " << PARK_QUEUE_ID + params.msqName << std::endl;
+
             perror("mq_open error");
             throw std::runtime_error("Couldn't open message queue!");
             return false;
@@ -181,6 +184,18 @@ public:
         }
 
         return dst;
+    }
+
+    /// Returns number of messages in message queue
+    /// \returns number of messages, -1 on failure
+    int GetMessageCount() {
+        if (m_msqID == -1)
+            return -1;
+
+        struct mq_attr attr;
+        if (mq_getattr(m_msqID, &attr) == -1)
+            return -1;
+        return attr.mq_curmsgs;
     }
 
 private:

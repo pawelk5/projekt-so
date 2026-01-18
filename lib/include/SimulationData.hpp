@@ -102,6 +102,7 @@ enum class MainSemaphoreArray : uint16_t {
     // pause semaphores for attractions
     AttractionPause1,
     RestaurantPause = AttractionPause1 + ATTRACTION_COUNT - 1,
+    MainPause,
 
     // event counter semaphores for attractions
     AttractionEvent1,

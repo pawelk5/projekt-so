@@ -3,6 +3,8 @@
 #include "SimulationData.hpp"
 #include "IPC/Signal.hpp"
 #include "Utils.hpp"
+#include <csignal>
+#include <cstdint>
 #include <fcntl.h>
 #include <iostream>
 #include <pthread.h>
@@ -13,9 +15,18 @@
 
 extern int g_loggerStatus;
 sem_t g_loggerInitSem;
+static volatile bool paused = false;
 
 void SigintAction(int sig) {
     MainProc::Get().HandleSigint();
+}
+
+void Sigusr1Action(int sig) {
+    MainProc::Get().HandleSigusr1();
+}
+
+void Sigusr2Action(int sig) {
+    MainProc::Get().HandleSigusr2();
 }
 
 void MainProc::HandleSigint() {
@@ -24,6 +35,15 @@ void MainProc::HandleSigint() {
     });
 
     pOpenAllLoopSemaphores();
+}
+
+void MainProc::HandleSigusr1() {
+    m_pauseSemaphore->SetValue(0);
+    paused = true;
+}
+
+void MainProc::HandleSigusr2() {
+    m_pauseSemaphore->SetValue(1);
 }
 
 MainProc::MainProc() { ; }
@@ -38,12 +58,19 @@ void MainProc::Run() {
     while (m_sharedMemory->GetData()->isOpen) {
         CreateProcess("park-client");
         usleep(RandomInt(CLIENT_SPAWN_TIME_MIN, CLIENT_SPAWN_TIME_MAX));
+        if (paused) 
+            m_pauseSemaphore->Wait();
+        paused = false;
     }
 }
 
 void MainProc::pInitImpl() {
     CreateSignalHandler(SIGINT, SigintAction);
     CreateSignalHandler(SIGTERM, SigintAction);
+
+    CreateSignalHandler(SIGUSR1, Sigusr1Action);
+    CreateSignalHandler(SIGUSR2, Sigusr2Action);
+    
     if (signal(SIGCHLD, SIG_IGN) == SIG_ERR)
         throw std::runtime_error("Couldn't ignore sigchld signal!");
 
@@ -61,7 +88,7 @@ void MainProc::pInitImpl() {
         m_sharedMemory->GetData()->parkSize = PARK_SIZE;
         m_sharedMemory->GetData()->mainPID = getpid();
     });
-
+    m_pauseSemaphore = m_semaphoreArray->GetSemaphore((uint16_t) MainSemaphoreArray::MainPause);
 
     CreateProcess("park-cashier");
     CreateProcess("park-restaurant");

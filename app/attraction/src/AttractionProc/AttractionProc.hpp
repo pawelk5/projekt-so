@@ -33,6 +33,8 @@ private:
     void pHandleEnterAttraction(const AttractionMQMessage& message);
     void pRemoveClient(pid_t pid);
 
+    void pCloseHandlers();
+
 private:
     bool pCreateReplyMQ(pid_t pid);
     bool pCreateNewHandler();

@@ -8,6 +8,7 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <sys/types.h>
+#include <iostream>
 
 SemaphoreArray::SemaphoreArray() 
     :m_isOwner(false), m_semData(-1, -1)
@@ -72,8 +73,7 @@ void SemaphoreArray::pGenerateSemaphores(uint16_t nSems) {
 bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, bool semundo, int timeout) {
     if (m_semData.isEmpty() || semID < 0 || semID >= m_semaphores.size() || timeout < -1)
         return false;
-
-
+    
     sembuf action;
     action.sem_op = value;
     action.sem_num = semID;
@@ -81,7 +81,6 @@ bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, 
 
     bool leave = false;
     auto tmspc = CreateTimestamp(timeout);
-
     while (true) {
         if (timeout == -1) {
             if (semop(m_semData.ID, &action, 1) != -1) 
@@ -107,7 +106,7 @@ bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, 
         return false;
     }
 
-    return true;
+    return false;
 }
 
 bool SemaphoreArray::SemSetValue(int semID, int16_t value) {

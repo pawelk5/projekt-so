@@ -5,7 +5,7 @@
 #include "SharedMessageTypes.hpp"
 
 enum class ClientMessageType : int {
-    ENTRY_PERMIT,
+    PARK_ENTRY_PERMIT,
     ATTRACTION_ENTRY_PERMIT,
     BILL,
     ACK

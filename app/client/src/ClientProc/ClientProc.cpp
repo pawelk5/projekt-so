@@ -1,14 +1,20 @@
 #include "ClientProc.hpp"
 #include "Config/Config.hpp"
+#include "MessageTypes/AttractionMQ.hpp"
 #include "MessageTypes/ClientMQ.hpp"
 #include "MessageTypes/RegisterMQ.hpp"
 #include "PredefinedMQ.hpp"
 #include "SimulationData.hpp"
 #include "Utils.hpp"
+#include <algorithm>
 #include <cstdio>
+#include <ctime>
+#include <exception>
 #include <string>
 #include <sys/types.h>
+#include <iostream>
 #include <unistd.h>
+#include <vector>
 
 ClientProc::ClientProc() { ; }
 ClientProc::~ClientProc() { ; }
@@ -22,29 +28,79 @@ void ClientProc::Run() {
     if (!m_sharedMemory->GetData()->isOpen)
         return;
     
-    if (!pCreateParkReplyMQ())
+    if (!pCreateReplyMQ(GetClientParkMQ))
         return;
     m_enteredPark = pEnterPark();
     m_clientQueue = nullptr;
     if (!m_enteredPark)
         return;
     
+    int parkTime = time(NULL) + (m_data.isVip ? RandomInt(60, 600) : TicketConfig.at(m_data.ticketType).time);
+    std::vector<int> availableAttractions(AttractionConfig.size());
+    std::iota(availableAttractions.begin(), availableAttractions.end(), 0);
+
     pLogMessage((std::string)"Klient" + (m_data.isVip ? " vip" : "") + " wchodzi do parku!");
 
-    // klient jest w parku
-    sleep(5);
+    while (time(NULL) < parkTime && m_sharedMemory->GetData()->isOpen && availableAttractions.size() > 0) {
+        try {
+            int attractionID = availableAttractions.at(RandomInt(0, availableAttractions.size() - 1));
+            const auto ct_attractionConfig = AttractionConfig.at(attractionID);
+            if (attractionID == RESTAURANT_INDEX) {
+                pCreateReplyMQ(GetClientRestaurantMQ);
+                if (pVisitRestaurant())
+                    m_visitedRestaurant = true;
+            }
+            else {
+                pCreateAttractionReplyMQ((uint8_t)attractionID);
+                auto semID = pEnterAttraction(attractionID);
+                m_clientQueue = nullptr;
 
-    pCreateParkReplyMQ();
-    pLeavePark();
+                if (semID != -1) {
+                    // klient w atrakcji
+                    pLogMessage("Klient wchodzi do atrakcji " + std::to_string(attractionID));
+                    int attractionTime;
+                    if (ct_attractionConfig.canLeave)
+                        attractionTime = RandomInt(5, ct_attractionConfig.duration);
+                    else
+                        attractionTime = ct_attractionConfig.duration;
+                    auto attractionSem = m_semaphoreArray->GetSemaphore(semID);
+
+                    if (!attractionSem->Wait(1, true, false, attractionTime)){
+                        pLogMessage("Klient wychodzi z atrakcji " + std::to_string(attractionID) + " (timeout)");
+                        if (pCreateAttractionReplyMQ((uint8_t)attractionID))
+                            pLeaveAttraction(attractionID);
+                    } else {
+                        pLogMessage("Klient wychodzi z atrakcji " + std::to_string(attractionID) + " (semop)");
+                    }
+                    
+                    if (RandomChance(0.95)){
+                        availableAttractions.erase(
+                            std::find(availableAttractions.begin(),
+                                availableAttractions.end(),
+                                attractionID));
+                    }
+                }
+            }
+            m_attractionMQ = nullptr;
+            m_restaurantMQ = nullptr;
+            m_clientQueue = nullptr;
+        } catch (std::exception e) {
+            std::cerr << "Blad przy wchodzeniu do atrakcji!" << std::endl;
+        }
+    }
+
+    pCreateReplyMQ(GetClientParkMQ);
+    pLeavePark(m_visitedRestaurant);
     m_clientQueue = nullptr;
 }
 
 void ClientProc::pInitImpl() {
     m_enteredPark = false;
+    m_visitedRestaurant = false;
 
     m_data.hasChild = RandomChance(CHILD_PROB);
     m_data.isVip = RandomChance(VIP_PROB);
-    m_data.ticketType = TicketType::H2;
+    m_data.ticketType = m_data.isVip ? TicketType::VIP : (TicketType)RandomInt(0, (int)TicketType::H24);
     pSetProcessRole(ProcessRole::CLIENT);
 
     pLogMessage((std::string)"Klient" + (m_data.isVip ? " vip" : "") + " rozpoczyna prace!");
@@ -52,100 +108,32 @@ void ClientProc::pInitImpl() {
 
 void ClientProc::pCloseImpl() {
     if (m_enteredPark){
-        pCreateParkReplyMQ();
-        pLeavePark();
+        pCreateReplyMQ(GetClientParkMQ);
+        pLeavePark(m_visitedRestaurant);
     }
 
     m_clientQueue = nullptr;
+    m_attractionMQ = nullptr;
     m_registerMQ = nullptr;
-
+    m_restaurantMQ = nullptr;
     pLogMessage("Klient konczy prace!");
 }
 
-void ClientProc::pLeavePark() {
-    if (!m_enteredPark)
-        return;
-    
-    m_enteredPark = false;
+bool ClientProc::pCreateReplyMQ(std::function<ClientMQ(pid_t, bool, const std::function<bool()>&)> func) {
+    m_clientQueue = func(getpid(), true, [this] {
+        if (errno == ENOSPC) {
+            pLogMessage("BLAD: Za duzo kolejek komunikatow w systemie!");
+            return true;
+        }
+        return false;
+    });
 
-    RegisterMQMessage exitMsg;
-    exitMsg.mType = RegisterMessageType::EXIT_PARK;
-    exitMsg.senderPID = getpid();
-    exitMsg.content = ExitPark{ .visitedRestaurant=false };
-
-    /// leaving is BLOCKING
-    if (!pGetRegisterMQ(true))
-        return;
-
-    bool result = pSendRegisterMQMessage(exitMsg, false);
-    m_registerMQ = nullptr;
-    
-    m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::CashierEvent)->Signal();
-
-    if (!result || !m_clientQueue) {
-        pLogMessage("Wychodzi z parku, nie mogl sie polaczyc z kolejka komunikatow kasy!");
-        return;
-    }
-
-    auto msg = m_clientQueue->ReceiveMessage(true, CLIENT_MQ_TIMEOUT);
-    if (!msg) {
-        pLogMessage("Wychodzi z parku bez odebrania rachunku (nie mogl stworzyc kolejki odpowiedzi)!");
-        return;
-    }
-
-    if (msg->mType != ClientMessageType::BILL) 
-        return;
-
-    auto reply = std::get<Bill>(msg->content);
-
-    ClientMQMessage ackMsg;
-    ackMsg.content = EmptyMessage{};
-    ackMsg.senderPID = getpid();
-    ackMsg.mType = ClientMessageType::ACK;
-    m_clientQueue->SendMessage(ackMsg, true);
-
-    pLogMessage("Wychodzi z parku, placi: " + std::to_string(reply.price));
+    return m_clientQueue != nullptr;
 }
 
-bool ClientProc::pEnterPark() {
-    if (m_enteredPark)
-        pLeavePark();
-
-    RegisterMQMessage enterMsg;
-    enterMsg.mType = RegisterMessageType::ENTER_PARK;
-    enterMsg.senderPID = getpid();
-    enterMsg.content = EnterPark{ .hasChild=m_data.hasChild, .isVip=m_data.isVip, .ticketType=m_data.ticketType };
-
-    if (!pGetRegisterMQ(false))
-        return false;
-
-    if (!pSendRegisterMQMessage(enterMsg, true))
-        return false;
-    
-    m_registerMQ = nullptr; 
-    m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::CashierEvent)->Signal();
-
-    auto msg = m_clientQueue->ReceiveMessage(true, CLIENT_MQ_TIMEOUT);
-    if (!msg)
-        return false;
-
-    if (msg->mType != ClientMessageType::ENTRY_PERMIT)
-        return false;
-
-    auto reply = std::get<ParkEntryPermit>(msg->content);
-
-    if (!reply.allowed)
-        return false;
-
-    ClientMQMessage ackMsg;
-    ackMsg.content = EmptyMessage{};
-    ackMsg.senderPID = getpid();
-    ackMsg.mType = ClientMessageType::ACK;
-    return m_clientQueue->SendMessage(ackMsg);
-}
-
-bool ClientProc::pCreateParkReplyMQ() {
-    m_clientQueue = GetClientParkMQ(getpid(), true, [this] {
+/// TODO
+bool ClientProc::pCreateAttractionReplyMQ(short attractionID) {
+    m_clientQueue = GetClientAttractionMQ(getpid(), attractionID, true, [this] {
         if (errno == ENOSPC) {
             pLogMessage("BLAD: Za duzo kolejek komunikatow w systemie!");
             return true;
@@ -169,10 +157,45 @@ bool ClientProc::pGetRegisterMQ(bool blocking) {
     return m_registerMQ != nullptr;
 }
 
+bool ClientProc::pGetAttractionMQ(short attractionID, bool blocking) {
+    m_attractionMQ = GetAttractionMQ(m_sharedMemory->GetData()->attractionPID.at(attractionID), false, [this] {
+        if (errno == ENOENT) {
+            pLogMessage("BLAD: Atrakcja zostala zamknieta przed wyslaniem wiadomosci!");
+            return true;
+        }
+        return false;
+    }, blocking);
+
+    return m_attractionMQ != nullptr;
+}
+
+bool ClientProc::pGetRestaurantMQ(bool blocking) {
+    m_restaurantMQ = GetRestaurantMQ(m_sharedMemory->GetData()->attractionPID.at(RESTAURANT_INDEX), false, [this] {
+        if (errno == ENOENT) {
+            pLogMessage("BLAD: Atrakcja zostala zamknieta przed wyslaniem wiadomosci!");
+            return true;
+        }
+        return false;
+    }, blocking);
+
+    return m_restaurantMQ != nullptr;
+}
+
+
 bool ClientProc::pSendRegisterMQMessage(const RegisterMQMessage& msg, bool timeout) {
     return m_registerMQ->SendMessage(msg, [this] {
         if (errno == EBADF) {
             pLogMessage("BLAD: Kasa zostala zamknieta przed wyslaniem wiadomosci!");
+            return true;
+        }
+        return false;
+    }, true, 0, timeout ? CLIENT_MQ_TIMEOUT : -1);    
+}
+
+bool ClientProc::pSendAttractionMQMessage(const AttractionMQMessage& msg, bool timeout) {
+    return m_attractionMQ->SendMessage(msg, [this] {
+        if (errno == EBADF) {
+            pLogMessage("BLAD: Atrakcja zostala zamknieta przed wyslaniem wiadomosci!");
             return true;
         }
         return false;
