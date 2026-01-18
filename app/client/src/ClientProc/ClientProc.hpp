@@ -1,9 +1,12 @@
 #pragma once
+#include <functional>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "Process.hpp"
 #include "MessageTypes/ClientMQ.hpp"
 #include "MessageTypes/RegisterMQ.hpp"
+#include "MessageTypes/AttractionMQ.hpp"
+#include "MessageTypes/RestaurantMQ.hpp"
 
 class ClientProc : public Process {
 public:
@@ -17,16 +20,29 @@ protected:
     void pInitImpl() override;
     void pCloseImpl() override;
 
-    void pLeavePark();
+    void pLeavePark(bool visitedRestaurant);
     bool pEnterPark();
 
-    bool pCreateParkReplyMQ();
+    // park entry, restaurant
+    bool pCreateReplyMQ(std::function<ClientMQ(pid_t, bool, const std::function<bool()>&)> func);
+    bool pCreateAttractionReplyMQ(short attractionID);
     bool pGetRegisterMQ(bool blocking);
+    bool pGetRestaurantMQ(bool blocking);
+    bool pGetAttractionMQ(short attractionID, bool blocking);
+
     bool pSendRegisterMQMessage(const RegisterMQMessage& msg, bool timeout);
+    bool pSendAttractionMQMessage(const AttractionMQMessage& msg, bool timeout);
+
+    /// Returns wait semaphore or -1
+    int pEnterAttraction(int attractionID);
+    /// Only when leaving mid-attraction
+    void pLeaveAttraction(int attractionID);
+    bool pVisitRestaurant();
 
 private:
     ClientMQ m_clientQueue;
     bool m_enteredPark;
+    bool m_visitedRestaurant;
 
     struct ClientData {
         bool hasChild;
@@ -36,4 +52,6 @@ private:
 
 private:
     RegisterMQ m_registerMQ;
+    AttractionMQ m_attractionMQ;
+    RestaurantMQ m_restaurantMQ;
 };

@@ -42,13 +42,13 @@ void CashierProc::Run() {
         m_eventSemaphore->Wait(1, true);
         pHandleRegisterMQ();
 
-        while (m_enterVipQueue.size() > 0 || !m_sharedMemory->GetData()->isOpen) {
+        while (m_enterVipQueue.size() > 0) {
             if (!pRegisterClient(m_enterVipQueue[0]))
                 break;
             m_enterVipQueue.erase(m_enterVipQueue.begin());
         }
 
-        while ((m_enterVipQueue.size() == 0 && m_enterQueue.size() > 0) || !m_sharedMemory->GetData()->isOpen) {
+        while (m_enterVipQueue.size() == 0 && m_enterQueue.size() > 0) {
             if (!pRegisterClient(m_enterQueue[0]))
                 break;
             m_enterQueue.erase(m_enterQueue.begin());
@@ -59,14 +59,13 @@ void CashierProc::Run() {
 }
 
 void CashierProc::pCloseImpl() {
+    m_registerQueue = nullptr;
     m_sharedMemory->GetSemLock().Execute([this]() {     
         if (m_sharedMemory->GetData()->cashierPID == getpid()) 
             m_sharedMemory->GetData()->cashierPID = 0;
     });
     
-    m_registerQueue = nullptr;
     m_replyMQ = nullptr;
-
     pLogMessage("Kasa konczy prace!");
 }
 
@@ -153,15 +152,16 @@ bool CashierProc::pRegisterClient(const RegisterMQMessage& message) {
     auto replyPID = message.senderPID;
     try {
         auto msgContent = std::get<EnterPark>(message.content);
+        bool allowed = m_sharedMemory->GetData()->isOpen;
 
-        if (m_sharedMemory->GetData()->parkSize < m_clientCounter + (msgContent.hasChild + 1))
+        if ((m_sharedMemory->GetData()->parkSize < m_clientCounter + (msgContent.hasChild + 1))
+            && allowed)
             return false;
 
         ClientMQMessage replyMsg;
         replyMsg.senderPID = getpid();
-        replyMsg.mType = ClientMessageType::ENTRY_PERMIT;
-
-        bool allowed = m_sharedMemory->GetData()->isOpen;
+        replyMsg.mType = ClientMessageType::PARK_ENTRY_PERMIT;
+        
         replyMsg.content = ParkEntryPermit{ .allowed = allowed };
 
         if (!pCreateReplyMQ(replyPID))

@@ -12,8 +12,6 @@ struct AttractionHandlerData {
     int maxCientCount;
 
     int attractionDuration;
-    std::map<pid_t, __AttractionHandlerClientData> clientList;
-
     bool isRestaurant;
 };
 
@@ -41,6 +39,7 @@ public:
     const AttractionHandlerData& GetHandlerData();
 
 private:
+    std::map<pid_t, __AttractionHandlerClientData> m_clientList;
     AttractionHandlerData m_data;
     time_t m_finishTime;
     bool m_started;

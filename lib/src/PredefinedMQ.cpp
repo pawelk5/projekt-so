@@ -75,7 +75,7 @@ ClientMQ GetClientParkMQ(pid_t clientPID, bool client, const std::function<bool(
     return __GetClientMQ(clientPID, client, errorHandler, "-park");
 }
 
-ClientMQ GetClientAttractionMQ(pid_t clientPID, uint8_t attractionID, bool client, const std::function<bool()>& errorHandler) {
+ClientMQ GetClientAttractionMQ(pid_t clientPID, short attractionID, bool client, const std::function<bool()>& errorHandler) {
     return __GetClientMQ(clientPID, client, errorHandler, "-attraction-" + std::to_string(attractionID));
 }
 

@@ -28,7 +28,7 @@ constexpr float CHILD_PROB = 0.6;
 constexpr int CLIENT_SPAWN_TIME_MIN = 25000;
 constexpr int CLIENT_SPAWN_TIME_MAX = 250000;
 constexpr int CLIENT_MQ_TIMEOUT = 10;
-constexpr int DEFAULT_MQ_TIMEOUT = 1;
+constexpr int DEFAULT_MQ_TIMEOUT = 2;
 
 constexpr const char* logFileNames[5] = {
     MAIN_LOG_PATH,
