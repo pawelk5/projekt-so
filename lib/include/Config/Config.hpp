@@ -22,7 +22,7 @@
 #define RESTAURANT_LOG_PATH "restaurant.log"
 #define CLIENT_LOG_PATH "client.log"
 
-constexpr int PARK_SIZE = 100;
+constexpr int PARK_SIZE = 120;
 constexpr float VIP_PROB = 0.01;
 constexpr float CHILD_PROB = 0.6;
 constexpr int CLIENT_SPAWN_TIME_MIN = 25000;
