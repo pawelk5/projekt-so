@@ -15,6 +15,8 @@ public:
 
     ~ClientProc();
 
+    void SetEvacFlag(bool flag);
+
 protected:
     ClientProc();
     void pInitImpl() override;
@@ -37,13 +39,16 @@ protected:
     int pEnterAttraction(int attractionID);
     /// Only when leaving mid-attraction
     void pLeaveAttraction(int attractionID);
+
+    void pVisitAttraction(int attractionID);
     bool pVisitRestaurant();
 
 private:
     ClientMQ m_clientQueue;
     bool m_enteredPark;
     bool m_visitedRestaurant;
-
+    bool m_evac;
+    
     struct ClientData {
         bool hasChild;
         bool isVip;
