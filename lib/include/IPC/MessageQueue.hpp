@@ -59,7 +59,6 @@ public:
         if (m_msqID == -1) {
             if (errorHandler())
                 return false;
-            std::cout << m_msqName.c_str() << ", " << PARK_QUEUE_ID + params.msqName << std::endl;
 
             perror("mq_open error");
             throw std::runtime_error("Couldn't open message queue!");

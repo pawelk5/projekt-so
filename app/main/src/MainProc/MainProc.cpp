@@ -76,7 +76,9 @@ void MainProc::pInitImpl() {
     if (signal(SIGCHLD, SIG_IGN) == SIG_ERR)
         throw std::runtime_error("Couldn't ignore sigchld signal!");
 
-    sem_init(&g_loggerInitSem, 0, 0);
+    if (sem_init(&g_loggerInitSem, 0, 0) == -1)
+        throw std::runtime_error("Couldn't create logger init semaphore!");
+    
     pthread_create(&m_loggerThread, nullptr, LoggerThread, nullptr);
     sem_wait(&g_loggerInitSem);
     sem_destroy(&g_loggerInitSem);
@@ -119,4 +121,6 @@ void MainProc::pOpenAllLoopSemaphores() {
         auto semaphore = m_semaphoreArray->GetSemaphore(id);
         semaphore->Signal();
     }
+    
+    m_pauseSemaphore->SetValue(1);
 }

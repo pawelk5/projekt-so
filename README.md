@@ -8,6 +8,9 @@ Aby zbudować należy skorzystać z dołączonego skryptu.
 ```bash
 ./build.sh
 ```
+Pliki wykonywalne zostaną przekopiowane do katalogu bin.
+
+Projekt był testowany na Linux Mint 22.2 (Ubuntu 24.04 LTS).
 
 ## Dokumentacja
 Dokładna dokumentacja dostępna w katalogu [docs](docs).
