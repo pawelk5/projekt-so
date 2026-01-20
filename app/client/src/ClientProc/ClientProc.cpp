@@ -180,7 +180,7 @@ bool ClientProc::pSendRegisterMQMessage(const RegisterMQMessage& msg, bool timeo
             return true;
         }
         return false;
-    }, true, 0, timeout ? CLIENT_MQ_TIMEOUT : -1);    
+    }, true, m_data.isVip, timeout ? CLIENT_MQ_TIMEOUT : -1);    
 }
 
 bool ClientProc::pSendAttractionMQMessage(const AttractionMQMessage& msg, bool timeout) {
