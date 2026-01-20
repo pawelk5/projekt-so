@@ -5,6 +5,7 @@
 #include "MessageTypes/RegisterMQ.hpp"
 #include "PredefinedMQ.hpp"
 #include "SimulationData.hpp"
+#include "IPC/Signal.hpp"
 #include "Utils.hpp"
 #include <algorithm>
 #include <cstdio>
@@ -16,12 +17,31 @@
 #include <unistd.h>
 #include <vector>
 
+void SigUsr1Handler(int sig) {
+    ;
+}
+
 ClientProc::ClientProc() { ; }
 ClientProc::~ClientProc() { ; }
 
 ClientProc& ClientProc::Get() {
     static ClientProc app;
     return app;
+}
+
+void ClientProc::pInitImpl() {
+    if (!CreateSignalHandler(SIGUSR1, SigUsr1Handler))
+        throw std::runtime_error("couldn't create sigusr1 handler!");
+    
+    m_enteredPark = false;
+    m_visitedRestaurant = false;
+
+    m_data.hasChild = RandomChance(CHILD_PROB);
+    m_data.isVip = RandomChance(VIP_PROB);
+    m_data.ticketType = m_data.isVip ? TicketType::VIP : (TicketType)RandomInt(0, (int)TicketType::H24);
+    pSetProcessRole(ProcessRole::CLIENT);
+
+    pLogMessage((std::string)"Klient" + (m_data.isVip ? " vip" : "") + " rozpoczyna prace!");
 }
 
 void ClientProc::Run() {
@@ -92,18 +112,6 @@ void ClientProc::Run() {
         pCreateReplyMQ(GetClientParkMQ);
     pLeavePark(m_visitedRestaurant);
     m_clientQueue = nullptr;
-}
-
-void ClientProc::pInitImpl() {
-    m_enteredPark = false;
-    m_visitedRestaurant = false;
-
-    m_data.hasChild = RandomChance(CHILD_PROB);
-    m_data.isVip = RandomChance(VIP_PROB);
-    m_data.ticketType = m_data.isVip ? TicketType::VIP : (TicketType)RandomInt(0, (int)TicketType::H24);
-    pSetProcessRole(ProcessRole::CLIENT);
-
-    pLogMessage((std::string)"Klient" + (m_data.isVip ? " vip" : "") + " rozpoczyna prace!");
 }
 
 void ClientProc::pCloseImpl() {
@@ -199,5 +207,5 @@ bool ClientProc::pSendAttractionMQMessage(const AttractionMQMessage& msg, bool t
             return true;
         }
         return false;
-    }, true, 0, timeout ? CLIENT_MQ_TIMEOUT : -1);    
+    }, !timeout, 0, timeout ? CLIENT_MQ_TIMEOUT : -1);    
 }

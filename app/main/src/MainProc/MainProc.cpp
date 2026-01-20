@@ -34,6 +34,8 @@ void MainProc::HandleSigint() {
         m_sharedMemory->GetData()->isOpen = false;
     });
 
+    kill(m_sharedMemory->GetData()->cashierPID, SIGUSR1);
+
     pOpenAllLoopSemaphores();
 }
 

@@ -100,16 +100,19 @@ bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, 
         else
             tmspc.tv_sec = endTime - time(NULL);
 
-        if (errno == EINTR && !retryOnInterrupt)
-            return false;
+        if (errno == EINTR) {
+            if (retryOnInterrupt)
+                return false;
+            else
+                continue;
+        }
 
         if (errno == EAGAIN)
             return false;
-
-        perror("semop error");
-        return false;
+        
+        break;
     }
-
+    perror("semop error");
     return false;
 }
 
