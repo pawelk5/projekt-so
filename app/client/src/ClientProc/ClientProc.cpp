@@ -17,8 +17,11 @@
 #include <unistd.h>
 #include <vector>
 
+static volatile bool evac = false; 
+
 void SigUsr1Handler(int sig) {
-    ;
+    evac = true;
+    ClientProc::Get().SetEvacFlag(evac);
 }
 
 ClientProc::ClientProc() { ; }
@@ -33,7 +36,7 @@ void ClientProc::pInitImpl() {
     if (!CreateSignalHandler(SIGUSR1, SigUsr1Handler))
         throw std::runtime_error("couldn't create sigusr1 handler!");
     
-    m_enteredPark = false;
+    m_enteredPark = m_evac = false;
     m_visitedRestaurant = false;
 
     m_data.hasChild = RandomChance(CHILD_PROB);
@@ -64,35 +67,13 @@ void ClientProc::Run() {
     while (time(NULL) < parkTime && m_sharedMemory->GetData()->isOpen && availableAttractions.size() > 0) {
         int attractionID = availableAttractions.at(RandomInt(0, availableAttractions.size() - 1));
         try {
-            const auto ct_attractionConfig = AttractionConfig.at(attractionID);
             if (attractionID == RESTAURANT_INDEX) {
                 pCreateReplyMQ(GetClientRestaurantMQ);
                 if (pVisitRestaurant())
                     m_visitedRestaurant = true;
             }
             else {
-                pCreateAttractionReplyMQ((uint8_t)attractionID);
-                auto semID = pEnterAttraction(attractionID);
-                m_clientQueue = nullptr;
-
-                if (semID != -1) {
-                    // klient w atrakcji
-                    pLogMessage("Klient wchodzi do atrakcji " + std::to_string(attractionID));
-                    int attractionTime;
-                    if (ct_attractionConfig.canLeave)
-                        attractionTime = RandomInt(5, ct_attractionConfig.duration);
-                    else
-                        attractionTime = ct_attractionConfig.duration;
-                    auto attractionSem = m_semaphoreArray->GetSemaphore(semID);
-                    
-                    if (!attractionSem->Wait(1, true, false, attractionTime)){
-                        pLogMessage("Klient wychodzi z atrakcji " + std::to_string(attractionID) + " (timeout)");
-                        if (pCreateAttractionReplyMQ((uint8_t)attractionID))
-                            pLeaveAttraction(attractionID);
-                    } else {
-                        pLogMessage("Klient wychodzi z atrakcji " + std::to_string(attractionID) + " (semop)");
-                    }
-                }
+                pVisitAttraction(attractionID);
             }
         } catch (std::exception e) {
             std::cerr << "Blad przy wchodzeniu do atrakcji!" << std::endl;
@@ -139,7 +120,7 @@ bool ClientProc::pCreateReplyMQ(std::function<ClientMQ(pid_t, bool, const std::f
     return m_clientQueue != nullptr;
 }
 
-/// TODO
+
 bool ClientProc::pCreateAttractionReplyMQ(short attractionID) {
     m_clientQueue = GetClientAttractionMQ(getpid(), attractionID, true, [this] {
         if (errno == ENOSPC) {
@@ -208,4 +189,8 @@ bool ClientProc::pSendAttractionMQMessage(const AttractionMQMessage& msg, bool t
         }
         return false;
     }, !timeout, 0, timeout ? CLIENT_MQ_TIMEOUT : -1);    
+}
+
+void ClientProc::SetEvacFlag(bool flag) {
+    m_evac = flag;
 }
