@@ -34,14 +34,18 @@ protected:
 
     bool pSendRegisterMQMessage(const RegisterMQMessage& msg, bool timeout);
     bool pSendAttractionMQMessage(const AttractionMQMessage& msg, bool timeout);
-
+    bool pSendRestaurantMQMessage(const RestaurantMQMessage& msg, bool timeout);
+    
     /// Returns wait semaphore or -1
     int pEnterAttraction(int attractionID);
     /// Only when leaving mid-attraction
     void pLeaveAttraction(int attractionID);
 
     void pVisitAttraction(int attractionID);
+
     bool pVisitRestaurant();
+    bool pEnterRestaurant();
+    void pLeaveRestaurant();
 
 private:
     ClientMQ m_clientQueue;

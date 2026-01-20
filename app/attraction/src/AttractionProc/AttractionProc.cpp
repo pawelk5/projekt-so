@@ -59,8 +59,8 @@ void AttractionProc::pInitImpl() {
 
         bool changed = false;
         for (int i = 0; i < ATTRACTION_COUNT; i++) {
-            if (m_sharedMemory->GetData()->attractionPID[i] == 0) {
-                m_sharedMemory->GetData()->attractionPID[i] = getpid();
+            if (m_sharedMemory->GetData()->attractionPID.at(i) == 0) {
+                m_sharedMemory->GetData()->attractionPID.at(i) = getpid();
                 changed = true;
                 m_attractionID = i;
                 break;
@@ -269,7 +269,7 @@ bool AttractionProc::pSendReply(pid_t pid, const ClientMQMessage& msg) {
 void AttractionProc::pCloseImpl() {
     if (GetAttractionID() != -1)
         m_sharedMemory->GetSemLock().Execute([this]() {
-            m_sharedMemory->GetData()->attractionPID[GetAttractionID()] = 0;
+            m_sharedMemory->GetData()->attractionPID.at(GetAttractionID()) = 0;
         });
 
     m_attractionMQ = nullptr;

@@ -1,4 +1,6 @@
 #pragma once
+#include <array>
+
 #define PARK_QUEUE_ID "/park-"
 /// in ubuntu-based systems default max queue size is 10
 #define DEFAULT_MAX_MSQ_SIZE 10
@@ -30,7 +32,7 @@ constexpr int CLIENT_SPAWN_TIME_MAX = 250000;
 constexpr int CLIENT_MQ_TIMEOUT = 10;
 constexpr int DEFAULT_MQ_TIMEOUT = 2;
 
-constexpr const char* logFileNames[5] = {
+constexpr std::array<const char*, 5> logFileNames {
     MAIN_LOG_PATH,
     CASHIER_LOG_PATH,
     ATTRACTION_LOG_PATH,

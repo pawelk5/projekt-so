@@ -27,7 +27,7 @@ time_t AttractionHandler::GetAttractionFinishTime() {
 }
 
 bool AttractionHandler::Finished() {
-    return time(NULL) >= m_finishTime;
+    return time(NULL) >= m_finishTime || m_clientList.size() == 0;
 }
 
 bool AttractionHandler::AddClient(pid_t pid, bool hasChild, bool fromPark) {
@@ -62,4 +62,8 @@ int AttractionHandler::GetClientCount() {
                 return sum + 1 + clData.second.hasChild;
             }
         );
+}
+
+const std::map<pid_t, __AttractionHandlerClientData>& AttractionHandler::GetClientList() {
+    return m_clientList;
 }

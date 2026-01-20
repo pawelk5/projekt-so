@@ -38,6 +38,8 @@ public:
     
     const AttractionHandlerData& GetHandlerData();
 
+    const std::map<pid_t, __AttractionHandlerClientData>& GetClientList();
+
 private:
     std::map<pid_t, __AttractionHandlerClientData> m_clientList;
     AttractionHandlerData m_data;

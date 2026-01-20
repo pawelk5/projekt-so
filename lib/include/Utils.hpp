@@ -41,7 +41,7 @@ std::array<char, N> ToArray(const std::string& str) {
     std::size_t length = std::min((int)str.size(), N - 1);
 
     std::copy(str.begin(), str.begin() + length, array.begin());
-    array[length] = 0;
+    array.at(length) = 0;
 
     return array;
 }

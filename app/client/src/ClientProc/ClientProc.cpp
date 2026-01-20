@@ -3,6 +3,7 @@
 #include "MessageTypes/AttractionMQ.hpp"
 #include "MessageTypes/ClientMQ.hpp"
 #include "MessageTypes/RegisterMQ.hpp"
+#include "MessageTypes/RestaurantMQ.hpp"
 #include "PredefinedMQ.hpp"
 #include "SimulationData.hpp"
 #include "IPC/Signal.hpp"
@@ -68,7 +69,6 @@ void ClientProc::Run() {
         int attractionID = availableAttractions.at(RandomInt(0, availableAttractions.size() - 1));
         try {
             if (attractionID == RESTAURANT_INDEX) {
-                pCreateReplyMQ(GetClientRestaurantMQ);
                 if (pVisitRestaurant())
                     m_visitedRestaurant = true;
             }
@@ -78,7 +78,7 @@ void ClientProc::Run() {
         } catch (std::exception e) {
             std::cerr << "Blad przy wchodzeniu do atrakcji!" << std::endl;
         }
-        if (RandomChance(0.95)){
+        if (RandomChance(0.95)) {
             availableAttractions.erase(
         std::find(availableAttractions.begin(),
             availableAttractions.end(),
@@ -89,8 +89,10 @@ void ClientProc::Run() {
         m_restaurantMQ = nullptr;
         m_clientQueue = nullptr;
     }
+    
     if (!m_data.isVip)
         pCreateReplyMQ(GetClientParkMQ);
+
     pLeavePark(m_visitedRestaurant);
     m_clientQueue = nullptr;
 }
@@ -183,6 +185,16 @@ bool ClientProc::pSendRegisterMQMessage(const RegisterMQMessage& msg, bool timeo
 
 bool ClientProc::pSendAttractionMQMessage(const AttractionMQMessage& msg, bool timeout) {
     return m_attractionMQ->SendMessage(msg, [this] {
+        if (errno == EBADF) {
+            pLogMessage("BLAD: Atrakcja zostala zamknieta przed wyslaniem wiadomosci!");
+            return true;
+        }
+        return false;
+    }, !timeout, 0, timeout ? CLIENT_MQ_TIMEOUT : -1);    
+}
+
+bool ClientProc::pSendRestaurantMQMessage(const RestaurantMQMessage& msg, bool timeout) {
+    return m_restaurantMQ->SendMessage(msg, [this] {
         if (errno == EBADF) {
             pLogMessage("BLAD: Atrakcja zostala zamknieta przed wyslaniem wiadomosci!");
             return true;
