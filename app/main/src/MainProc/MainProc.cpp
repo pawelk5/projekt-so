@@ -1,4 +1,5 @@
 #include "MainProc.hpp"
+#include "Config/Config.hpp"
 #include "LoggerService/LoggerService.hpp"
 #include "SimulationData.hpp"
 #include "IPC/Signal.hpp"
@@ -35,7 +36,7 @@ void MainProc::HandleSigint() {
     });
 
     kill(m_sharedMemory->GetData()->cashierPID, SIGUSR1);
-
+    kill(m_sharedMemory->GetData()->attractionPID.at(RESTAURANT_INDEX), SIGINT);
     pOpenAllLoopSemaphores();
 }
 
@@ -60,7 +61,7 @@ void MainProc::Run() {
     while (m_sharedMemory->GetData()->isOpen) {
         CreateProcess("park-client");
         usleep(RandomInt(CLIENT_SPAWN_TIME_MIN, CLIENT_SPAWN_TIME_MAX));
-        if (paused) 
+        if (paused)
             m_pauseSemaphore->Wait();
         paused = false;
     }
@@ -78,7 +79,7 @@ void MainProc::pInitImpl() {
 
     if (sem_init(&g_loggerInitSem, 0, 0) == -1)
         throw std::runtime_error("Couldn't create logger init semaphore!");
-    
+
     pthread_create(&m_loggerThread, nullptr, LoggerThread, nullptr);
     sem_wait(&g_loggerInitSem);
     sem_destroy(&g_loggerInitSem);

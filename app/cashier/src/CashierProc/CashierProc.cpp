@@ -52,13 +52,13 @@ void CashierProc::Run() {
         pHandleRegisterMQ();
 
         while (m_enterVipQueue.size() > 0) {
-            if (!pRegisterClient(m_enterVipQueue[0]))
+            if (!pRegisterClient(m_enterVipQueue.at(0)))
                 break;
             m_enterVipQueue.erase(m_enterVipQueue.begin());
         }
 
         while (m_enterVipQueue.size() == 0 && m_enterQueue.size() > 0) {
-            if (!pRegisterClient(m_enterQueue[0]))
+            if (!pRegisterClient(m_enterQueue.at(0)))
                 break;
             m_enterQueue.erase(m_enterQueue.begin());
         }
@@ -141,7 +141,7 @@ void CashierProc::pHandleExitPark(const RegisterMQMessage& message) {
         auto msg = m_replyMQ->ReceiveMessage(true, DEFAULT_MQ_TIMEOUT);
         // no ack message
         if (!msg)
-            throw std::runtime_error("Klient nie wyslal potwierdzenia rachunku!");
+            throw std::runtime_error("Klient nie wyslal potwierdzenia rachunku (kasa)!");
 
         if (msg->mType == ClientMessageType::ACK) {
             // CLIENT LEAVES PARK
@@ -163,8 +163,7 @@ bool CashierProc::pRegisterClient(const RegisterMQMessage& message) {
         auto msgContent = std::get<EnterPark>(message.content);
         bool allowed = m_sharedMemory->GetData()->isOpen;
 
-        if ((m_sharedMemory->GetData()->parkSize < m_clientCounter + (msgContent.hasChild + 1))
-            && allowed)
+        if ((m_sharedMemory->GetData()->parkSize < m_clientCounter + (msgContent.hasChild + 1)) && allowed)
             return false;
 
         ClientMQMessage replyMsg;
