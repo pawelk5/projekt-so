@@ -1,14 +1,20 @@
 #include "CashierProc.hpp"
+#include "IPC/Signal.hpp"
 #include "MessageTypes/ClientMQ.hpp"
 #include "PredefinedMQ.hpp"
 #include "SimulationData.hpp"
 #include <cerrno>
+#include <csignal>
 #include <ctime>
 #include <exception>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
+
+void SigUsr1Handler(int sig) {
+    CashierProc::Get().HandleSigUsr1();
+}
 
 CashierProc::CashierProc() { ; }
 CashierProc::~CashierProc() { ; }
@@ -19,6 +25,9 @@ CashierProc& CashierProc::Get() {
 }
 
 void CashierProc::pInitImpl() {
+    if (!CreateSignalHandler(SIGUSR1, SigUsr1Handler))
+        throw std::runtime_error("couldn't create sigusr1 handler!");
+
     m_sharedMemory->GetSemLock().Execute([this]() {
         if (!m_sharedMemory->GetData()->isOpen)
             throw std::runtime_error("park is closed!");
@@ -255,4 +264,14 @@ bool CashierProc::pSendReply(pid_t pid, const ClientMQMessage& msg) {
             }
             return false;
         }, true, 0, DEFAULT_MQ_TIMEOUT);
+}
+
+void CashierProc::HandleSigUsr1() {
+    pSignalAllClients();
+}
+
+void CashierProc::pSignalAllClients() {
+    for (auto& client : m_clients) {
+        kill(client.first, SIGUSR1);
+    }
 }

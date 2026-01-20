@@ -16,6 +16,8 @@ public:
 
     ~CashierProc();
 
+    void HandleSigUsr1();
+
 protected:
     CashierProc();
     void pInitImpl() override;
@@ -30,6 +32,9 @@ private:
     float pCalculatePrice(pid_t pid, bool usedRestaurant);
     bool pCreateReplyMQ(pid_t pid);
     bool pSendReply(pid_t pid, const ClientMQMessage& msg);
+
+private:
+    void pSignalAllClients();
     
 private:
     RegisterMQ m_registerQueue;
