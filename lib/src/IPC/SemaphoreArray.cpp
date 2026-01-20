@@ -101,7 +101,7 @@ bool SemaphoreArray::SemSignal(int semID, int16_t value, bool retryOnInterrupt, 
             tmspc.tv_sec = endTime - time(NULL);
 
         if (errno == EINTR) {
-            if (retryOnInterrupt)
+            if (!retryOnInterrupt)
                 return false;
             else
                 continue;

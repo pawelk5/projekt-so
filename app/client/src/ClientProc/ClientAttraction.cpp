@@ -79,14 +79,15 @@ void ClientProc::pVisitAttraction(int attractionID) {
 
     if (semID != -1) {
         // klient w atrakcji
-        pLogMessage("Klient wchodzi do atrakcji " + std::to_string(attractionID));
+        
         int attractionTime;
         if (ct_attractionConfig.canLeave)
             attractionTime = RandomInt(5, ct_attractionConfig.duration);
         else
             attractionTime = ct_attractionConfig.duration;
         auto attractionSem = m_semaphoreArray->GetSemaphore(semID);
-                    
+
+        pLogMessage("Klient wchodzi do atrakcji " + std::to_string(attractionID));
         if (!attractionSem->Wait(1, false, false, attractionTime)){
             if (!m_evac) {
                 pLogMessage("Klient wychodzi z atrakcji " + std::to_string(attractionID) + " (timeout/interrupt)");

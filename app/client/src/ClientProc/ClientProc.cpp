@@ -64,7 +64,7 @@ void ClientProc::Run() {
 
     pLogMessage((std::string)"Klient" + (m_data.isVip ? " vip" : "") + " wchodzi do parku!");
 
-    while (time(NULL) < parkTime && m_sharedMemory->GetData()->isOpen && availableAttractions.size() > 0) {
+    while (time(NULL) < parkTime && m_sharedMemory->GetData()->isOpen && availableAttractions.size() > 0 && !m_evac) {
         int attractionID = availableAttractions.at(RandomInt(0, availableAttractions.size() - 1));
         try {
             if (attractionID == RESTAURANT_INDEX) {
@@ -193,4 +193,6 @@ bool ClientProc::pSendAttractionMQMessage(const AttractionMQMessage& msg, bool t
 
 void ClientProc::SetEvacFlag(bool flag) {
     m_evac = flag;
+    if (m_evac)
+        pLogMessage((std::string)"Klient otrzymuje sygnal ewakuacji!");
 }
