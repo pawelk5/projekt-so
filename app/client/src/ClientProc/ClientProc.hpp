@@ -47,6 +47,8 @@ protected:
     bool pEnterRestaurant();
     void pLeaveRestaurant();
 
+    void pRemoveAllMQs();
+    
 private:
     ClientMQ m_clientQueue;
     bool m_enteredPark;

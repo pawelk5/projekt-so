@@ -11,11 +11,11 @@ AttractionHandler::AttractionHandler(const AttractionHandlerData& param)
 {
     m_data.leaveSemaphore->SetValue(0);
     m_finishTime = 0;
-    m_started = false;
+    m_started = m_released = false;
 }
 
 AttractionHandler::~AttractionHandler() {
-    m_data.leaveSemaphore->Signal(m_clientList.size());
+    ReleaseClients();
 }
 
 bool AttractionHandler::RemoveClient(pid_t pid) {
@@ -39,6 +39,9 @@ bool AttractionHandler::AddClient(pid_t pid, bool hasChild, bool fromPark) {
 }
 
 void AttractionHandler::StartAttraction() {
+    if (m_started)
+        return;
+
     m_finishTime = time(NULL) + m_data.attractionDuration;
     m_data.leaveSemaphore->SetValue(0);
     m_started = true;
@@ -66,4 +69,12 @@ int AttractionHandler::GetClientCount() {
 
 const std::map<pid_t, __AttractionHandlerClientData>& AttractionHandler::GetClientList() {
     return m_clientList;
+}
+
+void AttractionHandler::ReleaseClients() {
+    if (m_released)
+        return;
+
+    m_data.leaveSemaphore->Signal(m_clientList.size());
+    m_released = true;
 }

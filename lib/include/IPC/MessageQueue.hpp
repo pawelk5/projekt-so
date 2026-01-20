@@ -61,7 +61,7 @@ public:
                 return false;
 
             perror("mq_open error");
-            throw std::runtime_error("Couldn't open message queue!");
+            throw std::runtime_error("Couldn't open message queue " + m_msqName + "!");
             return false;
         }
 

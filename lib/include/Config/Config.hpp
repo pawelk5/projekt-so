@@ -4,6 +4,7 @@
 #define PARK_QUEUE_ID "/park-"
 /// in ubuntu-based systems default max queue size is 10
 #define DEFAULT_MAX_MSQ_SIZE 10
+#define DEFAULT_MIN_MSQ_SIZE 1
 
 #define SHARED_MEMORY_PATH "/tmp/park_rozrywki_shm_main"
 #define SHARED_MEMORY_KEY 'A'
@@ -24,11 +25,11 @@
 #define RESTAURANT_LOG_PATH "restaurant.log"
 #define CLIENT_LOG_PATH "client.log"
 
-constexpr int PARK_SIZE = 200;
+constexpr int PARK_SIZE = 250;
 constexpr float VIP_PROB = 0.01;
 constexpr float CHILD_PROB = 0.6;
-constexpr int CLIENT_SPAWN_TIME_MIN = 25000;
-constexpr int CLIENT_SPAWN_TIME_MAX = 250000;
+constexpr int CLIENT_SPAWN_TIME_MIN = 2500;
+constexpr int CLIENT_SPAWN_TIME_MAX = 25000;
 constexpr int CLIENT_MQ_TIMEOUT = 10;
 constexpr int DEFAULT_MQ_TIMEOUT = 2;
 
@@ -55,4 +56,5 @@ static_assert(VIP_PROB >= 0, "prawdopodobienstwo bycia klientem vip musi byc wie
 static_assert(CHILD_PROB >= 0, "prawdopodobienstwo bycia klientem vip musi byc wieksze lub rowne 0");
 
 static_assert(DEFAULT_MAX_MSQ_SIZE > 0, "rozmiar kolejek komunikatow musi byc wiekszy od 0");
+static_assert(DEFAULT_MIN_MSQ_SIZE > 0, "rozmiar kolejek komunikatow musi byc wiekszy od 0");
 static_assert(LOGGER_MESSAGE_MAX_LENGTH > 0, "dlugosc wiadomosci loggera musi byc wieksza od 0");

@@ -52,10 +52,15 @@ void ClientProc::Run() {
     if (!m_sharedMemory->GetData()->isOpen)
         return;
     
+    if (RandomChance(0.1f))
+        pVisitRestaurant();
+    pRemoveAllMQs();
+
     if (!pCreateReplyMQ(GetClientParkMQ))
         return;
     m_enteredPark = pEnterPark();
-    m_clientQueue = nullptr;
+    pRemoveAllMQs();
+
     if (!m_enteredPark)
         return;
     
@@ -85,16 +90,18 @@ void ClientProc::Run() {
             attractionID));
         }
 
-        m_attractionMQ = nullptr;
-        m_restaurantMQ = nullptr;
-        m_clientQueue = nullptr;
+        pRemoveAllMQs();
     }
     
     if (!m_data.isVip)
         pCreateReplyMQ(GetClientParkMQ);
 
     pLeavePark(m_visitedRestaurant);
-    m_clientQueue = nullptr;
+    pRemoveAllMQs();
+
+    if (RandomChance(0.1f))
+        pVisitRestaurant();
+    pRemoveAllMQs();
 }
 
 void ClientProc::pCloseImpl() {
@@ -103,10 +110,7 @@ void ClientProc::pCloseImpl() {
         pLeavePark(m_visitedRestaurant);
     }
 
-    m_clientQueue = nullptr;
-    m_attractionMQ = nullptr;
-    m_registerMQ = nullptr;
-    m_restaurantMQ = nullptr;
+    pRemoveAllMQs();
     pLogMessage("Klient konczy prace!");
 }
 
@@ -207,4 +211,11 @@ void ClientProc::SetEvacFlag(bool flag) {
     m_evac = flag;
     if (m_evac)
         pLogMessage((std::string)"Klient otrzymuje sygnal ewakuacji!");
+}
+
+void ClientProc::pRemoveAllMQs() {
+    m_clientQueue = nullptr;
+    m_attractionMQ = nullptr;
+    m_registerMQ = nullptr;
+    m_restaurantMQ = nullptr;
 }

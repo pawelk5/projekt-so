@@ -23,7 +23,7 @@ bool ClientProc::pVisitRestaurant() {
     if (!pEnterRestaurant())
         return false;
 
-    m_clientQueue = nullptr;
+    pRemoveAllMQs();
 
     // wejscie do atrakcji
     int attractionTime;
@@ -33,7 +33,7 @@ bool ClientProc::pVisitRestaurant() {
         attractionTime = ct_attractionConfig.duration;
     
     auto attractionSem = m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::RestaurantHandler);
-    pLogMessage("Klient wchodzi do atrakcji " + std::string(m_enteredPark ? "przez park!" : "spoza parku!") );
+    pLogMessage("Klient wchodzi do restauracji " + std::string(m_enteredPark ? "przez park!" : "spoza parku!") );
     if (!attractionSem->Wait(1, false, false, attractionTime)){
         if (!m_evac)
             pLogMessage("Klient wychodzi z restauracji (timeout/interrupt)");
@@ -44,12 +44,7 @@ bool ClientProc::pVisitRestaurant() {
         pLogMessage("Klient wychodzi z restauracji (semop)");
     }
 
-    if (!pCreateReplyMQ(GetClientRestaurantMQ))
-        return false;
-
     pLeaveRestaurant();
-
-    m_clientQueue = nullptr;
     return true;
 }
 
@@ -65,7 +60,6 @@ bool ClientProc::pEnterRestaurant() {
     if (!pSendRestaurantMQMessage(enterMsg, true))
         return false;
     
-    m_attractionMQ = nullptr;
     m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::RestaurantEvent)->Signal();
 
     auto msg = m_clientQueue->ReceiveMessage(true, CLIENT_MQ_TIMEOUT);
@@ -101,24 +95,23 @@ void ClientProc::pLeaveRestaurant() {
         return;
 
     bool result = pSendRestaurantMQMessage(exitMsg, false);
-    m_attractionMQ = nullptr;
     
     m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::RestaurantEvent)->Signal();
 
     if (!result)
-        pLogMessage("Wychodzi z restauracji, nie mogl sie polaczyc z kolejka komunikatow pracownika!");
+        pLogMessage("Wychodzi z restauracji, nie mogl sie polaczyc z kolejka komunikatow restauracji!");
 
     // dont wait for reply
     if (m_enteredPark)
         return;
 
     if (!pCreateReplyMQ(GetClientRestaurantMQ)) {
-        pLogMessage("Wychodzi z restauracji, nie otrzymac rachunku!");
+        pLogMessage("Wychodzi z restauracji bez odebrania rachunku (nie mogl stworzyc kolejki odpowiedzi)!");
         return;
     }
-    auto msg = m_clientQueue->ReceiveMessage(true, CLIENT_MQ_TIMEOUT);
+    auto msg = m_clientQueue->ReceiveMessage(true);
     if (!msg) {
-        pLogMessage("Wychodzi z parku bez odebrania rachunku (nie mogl stworzyc kolejki odpowiedzi)!");
+        pLogMessage("Wychodzi z restauracji, nie otrzymac rachunku!");
         return;
     }
 
