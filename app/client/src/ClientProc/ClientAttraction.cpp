@@ -26,7 +26,6 @@ int ClientProc::pEnterAttraction(int attractionID) {
     if (!pSendAttractionMQMessage(enterMsg, true))
         return -1;
     
-    m_attractionMQ = nullptr;
     m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::AttractionEvent1 + attractionID)->Signal();
 
     auto msg = m_clientQueue->ReceiveMessage(true, CLIENT_MQ_TIMEOUT);
@@ -57,12 +56,10 @@ void ClientProc::pLeaveAttraction(int attractionID) {
     exitMsg.senderPID = getpid();
     exitMsg.content = EmptyMessage{ };
 
-    /// leaving is BLOCKING
-    if (!pGetAttractionMQ(attractionID, true))
+    if (!pGetAttractionMQ(attractionID, false))
         return;
 
-    bool result = pSendAttractionMQMessage(exitMsg, false);
-    m_attractionMQ = nullptr;
+    bool result = pSendAttractionMQMessage(exitMsg, true);
     
     m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::AttractionEvent1 + attractionID)->Signal();
 
@@ -73,15 +70,17 @@ void ClientProc::pLeaveAttraction(int attractionID) {
 void ClientProc::pVisitAttraction(int attractionID) {
     const auto ct_attractionConfig = AttractionConfig.at(attractionID);
 
-    pCreateAttractionReplyMQ((uint8_t)attractionID);
+    if (!pCreateAttractionReplyMQ((uint8_t)attractionID))
+        return;
+
     auto semID = pEnterAttraction(attractionID);
-    m_clientQueue = nullptr;
+    pRemoveAllMQs();
 
     if (semID != -1) {
         // klient w atrakcji
         
         int attractionTime;
-        if (ct_attractionConfig.canLeave)
+        if (ct_attractionConfig.canLeave && RandomChance(0.1f))
             attractionTime = RandomInt(5, ct_attractionConfig.duration);
         else
             attractionTime = ct_attractionConfig.duration;
@@ -91,8 +90,7 @@ void ClientProc::pVisitAttraction(int attractionID) {
         if (!attractionSem->Wait(1, false, false, attractionTime)) {
             if (!m_evac) {
                 pLogMessage("Klient wychodzi z atrakcji " + std::to_string(attractionID) + " (timeout/interrupt)");
-                if (pCreateAttractionReplyMQ((uint8_t)attractionID))
-                    pLeaveAttraction(attractionID);
+                pLeaveAttraction(attractionID);
             }
             else
                 pLogMessage("Klient wychodzi z atrakcji " + std::to_string(attractionID) + " (ewakuacja)");

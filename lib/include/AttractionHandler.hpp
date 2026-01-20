@@ -28,10 +28,10 @@ public:
     bool AddClient(pid_t pid, bool hasChild, bool fromPark = true);
     int GetClientCount();
 
-
     void StartAttraction();
     bool IsEmpty();
 
+    void ReleaseClients();
 
     AttractionHandler(const AttractionHandler&) = delete;
     AttractionHandler& operator= (const AttractionHandler&) = delete;
@@ -45,4 +45,6 @@ private:
     AttractionHandlerData m_data;
     time_t m_finishTime;
     bool m_started;
+
+    bool m_released;
 };

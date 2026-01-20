@@ -5,6 +5,7 @@
 #include "SimulationData.hpp"
 #include "IPC/Signal.hpp"
 #include <cstdint>
+#include <exception>
 #include <optional>
 #include <string>
 
@@ -16,6 +17,7 @@ void SigUsr1(int sig) {
 }
 
 void SigUsr2(int sig) {
+    paused = false;
     RestaurantProc::Get().OpenAttraction();
 }
 
@@ -42,13 +44,9 @@ void RestaurantProc::Run() {
         }
 
         pHandleRestaurantMQ();
-        if (!m_handler)
+        if (!m_handler && !paused)
             pCreateAttractionHandler();
 
-        // attraction was closed, wait for signal to open
-        if (paused)
-            m_pauseSemaphore->Wait(1, true);
-        paused = false;
     }
 }
 
@@ -67,7 +65,6 @@ void RestaurantProc::pInitImpl() {
         m_sharedMemory->GetData()->attractionPID.at(RESTAURANT_INDEX) = getpid();
     });
 
-    m_pauseSemaphore = m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::RestaurantPause);
     m_eventSemaphore = m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::RestaurantEvent);
     m_handlerSemaphore = m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::RestaurantHandler);
 
@@ -97,14 +94,19 @@ void RestaurantProc::pHandleRestaurantMQ() {
             break;
 
         case RestaurantMessageType::EXIT_RESTAURANT:
-            pSendBill(replyPID);
+            try {
+                pSendBill(replyPID);
+            } catch (std::exception e) {
+                pRemoveClient(replyPID);
+                throw;
+            }
             pRemoveClient(replyPID);
             break;
         default:
             std::cerr << "Zly typ wiadomosci!" << std::endl;
         }
-    } catch (std::bad_variant_access variant_error) {
-        std::cerr << "Zla zawartosc wiadomosci!\n" << variant_error.what() << std::endl;
+    } catch (std::exception e) {
+        std::cerr << "BLAD komunikacji z klientem (wyjscie z restauracji)!\n" << e.what() << std::endl;
     }
 }
 
@@ -141,19 +143,18 @@ void RestaurantProc::pCloseImpl() {
 
     m_restaurantMQ = nullptr;
     m_replyMQ = nullptr;
-    m_pauseSemaphore = nullptr;
 
     pLogMessage("Restauracja konczy prace!");
 }
 
 void RestaurantProc::CloseAttraction() {
     pLogMessage("Zamykanie restauracji!");
-    m_pauseSemaphore->SetValue(0);
+    if (m_handler)
+        m_handler->ReleaseClients();
 }
 
 void RestaurantProc::OpenAttraction() {
     pLogMessage("Otwieranie restauracji!");
-    m_pauseSemaphore->SetValue(1);
 }
 
 void RestaurantProc::HandleSigint() {

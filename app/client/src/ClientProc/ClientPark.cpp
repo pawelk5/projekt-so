@@ -70,7 +70,7 @@ void ClientProc::pLeavePark(bool visitedRestaurant) {
     
     m_semaphoreArray->GetSemaphore((uint16_t)MainSemaphoreArray::CashierEvent)->Signal();
 
-    if (m_data.isVip)
+    if (m_data.isVip && !m_visitedRestaurant)
         return;
 
     if (!result || !m_clientQueue) {

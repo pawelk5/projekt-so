@@ -42,7 +42,6 @@ private:
     time_t pGetNextTimeout();
 
 private:
-    Semaphore m_pauseSemaphore;
     Semaphore m_eventSemaphore;
     Semaphore m_handlerSemaphore;
 
@@ -51,7 +50,6 @@ private:
 
     std::vector<RestaurantMQMessage> m_enterQueue;
     std::shared_ptr<AttractionHandler> m_handler;
-    std::map<pid_t, bool> m_clients;
 
 private:
     __AttractionConfig cm_attractionConfig;

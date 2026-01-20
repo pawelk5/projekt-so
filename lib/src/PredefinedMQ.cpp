@@ -1,4 +1,5 @@
 #include "PredefinedMQ.hpp"
+#include "Config/Config.hpp"
 #include "IPC/MessageQueue.hpp"
 #include "MessageTypes/AttractionMQ.hpp"
 #include "MessageTypes/ClientMQ.hpp"
@@ -64,7 +65,7 @@ ClientMQ __GetClientMQ(pid_t clientPID, bool client, const std::function<bool()>
     t_params.blocking = false;
     t_params.create = client;
     t_params.msqName = std::to_string(clientPID) + "-client" + suffix;
-    t_params.maxMsgCount = DEFAULT_MAX_MSQ_SIZE;
+    t_params.maxMsgCount = DEFAULT_MIN_MSQ_SIZE;
 
     if (!t_mq->OpenMessageQueue(t_params, errorHandler))
         return nullptr;

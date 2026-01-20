@@ -47,7 +47,7 @@ void CashierProc::pInitImpl() {
 }
 
 void CashierProc::Run() {
-    while (m_sharedMemory->GetData()->isOpen || m_clients.size() > 0) {
+    while (m_sharedMemory->GetData()->isOpen || m_clients.size() > 0 || m_registerQueue->GetMessageCount() > 0) {
         m_eventSemaphore->Wait(1, true);
         pHandleRegisterMQ();
 
@@ -92,15 +92,20 @@ void CashierProc::pHandleRegisterMQ() {
             break;
 
         case RegisterMessageType::EXIT_PARK:
+            try {
             pHandleExitPark(*registerMsg);
+            } catch (std::exception) {
+                pRemoveClient(replyPID);
+                throw;
+            }
             pRemoveClient(replyPID);
             break;
         
         default:
             std::cerr << "Zly typ wiadomosci!" << std::endl;
         }
-    } catch (std::bad_variant_access variant_error) {
-        std::cerr << "Zla zawartosc wiadomosci!\n" << variant_error.what() << std::endl;
+    } catch (std::exception e) {
+        std::cerr << "Wystapil blad przy obsludze klienta (wyjscie)!\n" << e.what() << std::endl;
     }
 }
 
@@ -119,13 +124,13 @@ void CashierProc::pHandleExitPark(const RegisterMQMessage& message) {
         return;
     }
 
-    if (m_clients.at(replyPID).vip) {
-        pLogMessage("Vip o pid " + std::to_string(replyPID) + " opuszcza park!");
-        return;
-    }
-
     try {
         auto msgContent = std::get<ExitPark>(message.content);
+
+        if (m_clients.at(replyPID).vip && !msgContent.visitedRestaurant) {
+            pLogMessage("Vip o pid " + std::to_string(replyPID) + " opuszcza park (nie korzystal z restauracji)!");
+            return;
+        }
 
         ClientMQMessage replyMsg;
         replyMsg.senderPID = getpid();
@@ -216,9 +221,6 @@ float CashierProc::pCalculatePrice(pid_t pid, bool usedRestaurant) {
     const auto ct_ticketData = TicketConfig.at(m_clients.at(pid).ticketType);
     float price = ct_ticketData.price;
 
-    if (usedRestaurant)
-        price *= 1.1f;
-
     // overtime
     int overtime = (ct_clientData.entryTime + ct_ticketData.time) - time(NULL);
 
@@ -230,6 +232,9 @@ float CashierProc::pCalculatePrice(pid_t pid, bool usedRestaurant) {
     // ticket for child
     if (ct_clientData.hasChild)
         price *= 1.5f;
+
+    if (usedRestaurant)
+        price += 40.f + (20.f * ct_clientData.hasChild);
 
     return price;
 }
