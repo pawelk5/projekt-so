@@ -18,6 +18,9 @@ public:
 
     void HandleSigUsr1();
 
+    /// ditches all clients
+    void HandleSigTerm();
+
 protected:
     CashierProc();
     void pInitImpl() override;
@@ -40,6 +43,8 @@ private:
     RegisterMQ m_registerQueue;
     ClientMQ m_replyMQ;
     Semaphore m_eventSemaphore;
+
+    bool m_terminated;
 
 private:
     struct ClientData {

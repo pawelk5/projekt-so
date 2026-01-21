@@ -16,6 +16,10 @@ void SigUsr1Handler(int sig) {
     CashierProc::Get().HandleSigUsr1();
 }
 
+void SigTerm(int sig) {
+    CashierProc::Get().HandleSigTerm();
+}
+
 CashierProc::CashierProc() { ; }
 CashierProc::~CashierProc() { ; }
 
@@ -27,6 +31,9 @@ CashierProc& CashierProc::Get() {
 void CashierProc::pInitImpl() {
     if (!CreateSignalHandler(SIGUSR1, SigUsr1Handler))
         throw std::runtime_error("couldn't create sigusr1 handler!");
+
+    if (!CreateSignalHandler(SIGTERM, SigTerm))
+        throw std::runtime_error("couldn't create sigterm handler!");
 
     m_sharedMemory->GetSemLock().Execute([this]() {
         if (!m_sharedMemory->GetData()->isOpen)
@@ -41,13 +48,15 @@ void CashierProc::pInitImpl() {
     m_registerQueue = GetRegisterMQ(m_sharedMemory->GetData()->cashierPID, true);
     m_eventSemaphore = m_semaphoreArray->GetSemaphore((uint16_t) MainSemaphoreArray::CashierEvent);
     m_clientCounter = 0;
+    m_terminated = false;
     pSetProcessRole(ProcessRole::CASHIER);
 
     pLogMessage("Kasa rozpoczyna prace!");
 }
 
 void CashierProc::Run() {
-    while (m_sharedMemory->GetData()->isOpen || m_clients.size() > 0 || m_registerQueue->GetMessageCount() > 0) {
+    while ((m_sharedMemory->GetData()->isOpen || m_clients.size() > 0 || m_registerQueue->GetMessageCount() > 0)
+            && !m_terminated) {
         m_eventSemaphore->Wait(1, true);
         pHandleRegisterMQ();
 
@@ -272,6 +281,12 @@ bool CashierProc::pSendReply(pid_t pid, const ClientMQMessage& msg) {
 
 void CashierProc::HandleSigUsr1() {
     pSignalAllClients();
+}
+
+void CashierProc::HandleSigTerm() {
+    m_clients.clear();
+    m_terminated = true;
+    m_clientCounter = 0;
 }
 
 void CashierProc::pSignalAllClients() {
