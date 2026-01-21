@@ -17,6 +17,28 @@ int GetFirstHandlerSemaphoreID(size_t attractionIndex) {
     return (int) ((int)MainSemaphoreArray::AttractionHandler1 + offset);
 }
 
+bool MeetsAttractionCriteria(int attractionID, const PersonData& client, const PersonData& child, bool hasChild) {
+    const auto attractionConfig = AttractionConfig.at(attractionID);
+
+    if (attractionConfig.maxHeight != -1 && client.height > attractionConfig.maxHeight)
+        return false;
+
+    if (attractionConfig.minHeight != -1 && client.height < attractionConfig.minHeight)
+        return false;
+
+    if (hasChild) {
+        if (attractionConfig.minAge != -1 && child.age < attractionConfig.minAge)
+            return false;
+
+        if (attractionConfig.minChildHeight != -1 && child.height < attractionConfig.minChildHeight)
+            return false;
+        else if (attractionConfig.minHeight != -1 && child.height < attractionConfig.minHeight)
+            return false;
+    }
+
+    return true;
+}
+
 const std::map<TicketType, __TicketData> TicketConfig {
     {TicketType::H2, 
         __TicketData{

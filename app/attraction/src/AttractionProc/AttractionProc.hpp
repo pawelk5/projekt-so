@@ -44,7 +44,6 @@ private:
 
 private:
     int m_attractionID;
-    Semaphore m_pauseSemaphore;
     Semaphore m_eventSemaphore;
 
     AttractionMQ m_attractionMQ;

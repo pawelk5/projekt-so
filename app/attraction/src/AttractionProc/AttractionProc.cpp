@@ -20,6 +20,7 @@ void SigUsr1(int sig) {
 }
 
 void SigUsr2(int sig) {
+    paused = false;
     AttractionProc::Get().OpenAttraction();
 }
 
@@ -27,13 +28,10 @@ void AttractionProc::CloseAttraction() {
     pLogMessage("Zamykanie atrakcji " + std::to_string(GetAttractionID()) + "!");
     for (auto it = m_attractionHandlers.begin(); it != m_attractionHandlers.end(); ++it)
         it->second = nullptr;
-
-    m_pauseSemaphore->SetValue(0);
 }
 
 void AttractionProc::OpenAttraction() {
     pLogMessage("Otwieranie atrakcji " + std::to_string(GetAttractionID()) + "!");
-    m_pauseSemaphore->SetValue(1);
 }
 
 AttractionProc::AttractionProc()
@@ -70,8 +68,6 @@ void AttractionProc::pInitImpl() {
             throw std::runtime_error("all atractions already exist!");
     });
 
-    m_pauseSemaphore = m_semaphoreArray->GetSemaphore(
-        (uint16_t) MainSemaphoreArray::AttractionPause1 + GetAttractionID());
     m_eventSemaphore = m_semaphoreArray->GetSemaphore(
         (uint16_t) MainSemaphoreArray::AttractionEvent1 + GetAttractionID());
 
@@ -102,11 +98,6 @@ void AttractionProc::Run() {
             }
         }
         pHandleAttraction();
-
-        // attraction was closed, wait for signal to open
-        if (paused)
-            m_pauseSemaphore->Wait(1, true);
-        paused = false;
     }
 }
 
@@ -166,6 +157,9 @@ bool AttractionProc::pCreateReplyMQ(pid_t pid) {
 }
 
 bool AttractionProc::pCreateNewHandler() {
+    if (paused)
+        return false;
+    
     int newHandlerID = -1;
     for (auto& handler : m_attractionHandlers) {
         if (!handler.second) {
@@ -208,7 +202,12 @@ bool AttractionProc::pRegisterClient(const AttractionMQMessage& message, std::sh
     auto replyPID = message.senderPID;
     try {
         auto msgContent = std::get<EnterAttraction>(message.content);
-        bool allowed = m_sharedMemory->GetData()->isOpen;
+        bool allowed = m_sharedMemory->GetData()->isOpen && !paused;
+
+        if (allowed) {
+            allowed = MeetsAttractionCriteria(GetAttractionID(), 
+                msgContent.personData, msgContent.childData, msgContent.hasChild);
+        }
 
         if ((handler->GetClientCount() + 1 + msgContent.hasChild > cm_attractionConfig.maxClientsPerHandler)
             && allowed)

@@ -166,9 +166,9 @@ constexpr int HandlerCount =
 enum class MainSemaphoreArray : uint16_t {
     MainSharedMemorySemaphore,
     CashierEvent,
-    // pause semaphores for attractions
-    AttractionPause1,
-    MainPause = AttractionPause1 + ATTRACTION_COUNT - 1,
+    
+    // pause semaphore for main process
+    MainPause,
 
     // event counter semaphores for attractions
     AttractionEvent1,
@@ -191,6 +191,13 @@ struct SimulationData {
 /// Returns the semaphore ID of the first handler associated with an attraction
 /// \param attractionIndex index of the attraction
 int GetFirstHandlerSemaphoreID(size_t attractionIndex);
+
+/// Checks if the person meets criteria for an attraction
+/// \param attractionID index of the attraction
+/// \param client client data
+/// \param child client's child data
+/// \param hasChild flag if the client has child
+bool MeetsAttractionCriteria(int attractionID, const PersonData& client, const PersonData& child, bool hasChild);
 
 enum class TicketType : int {
     H2,
