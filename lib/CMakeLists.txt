@@ -24,3 +24,6 @@ target_compile_definitions(${STATIC_LIBRARY} PRIVATE _BUILD)
 target_include_directories(${STATIC_LIBRARY} PUBLIC 
     ${LIBRARY_INCLUDE_PATH}
 )
+
+# set up tests
+add_subdirectory("test")
