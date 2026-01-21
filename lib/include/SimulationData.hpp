@@ -12,6 +12,12 @@ struct __AttractionConfig {
     uint8_t handlerCount;
 
     bool canLeave;
+
+    int minChildHeight;
+    int minHeight;
+    int minAge;
+
+    int maxHeight = -1;
 };
 
 struct PersonData {
@@ -22,72 +28,128 @@ struct PersonData {
 constexpr std::array<__AttractionConfig, 17> AttractionConfig = {
     __AttractionConfig { // A1
         .duration=30, .maxClientsPerHandler=20,
-        .handlerCount=1, .canLeave=true
+        .handlerCount=1, .canLeave=true,
+
+        .minChildHeight=120,
+        .minHeight=-1, .minAge=-1
     },
     __AttractionConfig { // A2
         .duration=30, .maxClientsPerHandler=12,
-        .handlerCount=1, .canLeave=true
+        .handlerCount=1, .canLeave=true,
+
+        .minChildHeight=100,
+        .minHeight=120, .minAge=-1
     },
     __AttractionConfig { // A3
         .duration=25, .maxClientsPerHandler=16,
-        .handlerCount=1, .canLeave=true
+        .handlerCount=1, .canLeave=true,
+
+        .minChildHeight=-1,
+        .minHeight=120, .minAge=2
     },
     __AttractionConfig { // A4
         .duration=35, .maxClientsPerHandler=18,
-        .handlerCount=1, .canLeave=true
+        .handlerCount=1, .canLeave=true,
+
+        .minChildHeight=110,
+        .minHeight=135, .minAge=-1
     },
     __AttractionConfig { // A5
         .duration=20, .maxClientsPerHandler=14,
-        .handlerCount=1, .canLeave=true
+        .handlerCount=1, .canLeave=true,
+
+        .minChildHeight=-1,
+        .minHeight=130, .minAge=2
     },
     __AttractionConfig { // A6
         .duration=20, .maxClientsPerHandler=8,
-        .handlerCount=1, .canLeave=false
+        .handlerCount=1, .canLeave=false,
+
+        .minChildHeight=-1,
+        .minHeight=120, .minAge=-1
     },
     __AttractionConfig { // A7
         .duration=15, .maxClientsPerHandler=12,
-        .handlerCount=1, .canLeave=false
+        .handlerCount=1, .canLeave=false,
+
+        .minChildHeight=-1,
+        .minHeight=130, .minAge=2,
+        .maxHeight=190
     },
     __AttractionConfig { // A8
         .duration=15, .maxClientsPerHandler=24,
-        .handlerCount=1, .canLeave=false
+        .handlerCount=1, .canLeave=false,
+
+        .minChildHeight=100,
+        .minHeight=120, .minAge=-1
     },
     __AttractionConfig { // A9
         .duration=35, .maxClientsPerHandler=5,
-        .handlerCount=4, .canLeave=false
+        .handlerCount=4, .canLeave=false,
+
+        .minChildHeight=-1,
+        .minHeight=120, .minAge=4
     },
     /* A10 WAS NOT SPECIFIED */
     __AttractionConfig { // A10
         .duration=35, .maxClientsPerHandler=5,
-        .handlerCount=4, .canLeave=false
+        .handlerCount=4, .canLeave=false,
+
+        .minChildHeight=-1,
+        .minHeight=120, .minAge=4
     },/* A10 WAS NOT SPECIFIED */
     __AttractionConfig { // A11
         .duration=30, .maxClientsPerHandler=24,
-        .handlerCount=1, .canLeave=false
+        .handlerCount=1, .canLeave=false,
+
+        .minChildHeight=-1,
+        .minHeight=140, .minAge=-1,
+        .maxHeight=195
     },
     __AttractionConfig { // A12
         .duration=25, .maxClientsPerHandler=18,
-        .handlerCount=1, .canLeave=false
+        .handlerCount=1, .canLeave=false,
+
+        .minChildHeight=-1,
+        .minHeight=140, .minAge=-1,
+        .maxHeight=195
     },
     __AttractionConfig { // A13
         .duration=20, .maxClientsPerHandler=2,
-        .handlerCount=4, .canLeave=true
+        .handlerCount=4, .canLeave=true,
+
+        .minChildHeight=-1,
+        .minHeight=140, .minAge=-1,
+        .maxHeight=195
     },
     __AttractionConfig { // A14
         .duration=20, .maxClientsPerHandler=3,
-        .handlerCount=4, .canLeave=true
+        .handlerCount=4, .canLeave=true,
+
+        .minChildHeight=-1,
+        .minHeight=130, .minAge=4
     },
     __AttractionConfig { // A15
         .duration=15, .maxClientsPerHandler=2,
-        .handlerCount=10, .canLeave=true
+        .handlerCount=10, .canLeave=true,
+
+        .minChildHeight=-1,
+        .minHeight=120, .minAge=-1
     },
     __AttractionConfig { // A16
         .duration=35, .maxClientsPerHandler=9,
-        .handlerCount=5, .canLeave=true
+        .handlerCount=5, .canLeave=true,
+
+        .minChildHeight=120,
+        .minHeight=140, .minAge=-1,
+        .maxHeight=195
     },
     __AttractionConfig { // A17
         .duration=60, .maxClientsPerHandler=50,
-        .handlerCount=1, .canLeave=true
+        .handlerCount=1, .canLeave=true,
+
+        .minChildHeight=-1,
+        .minHeight=-1, .minAge=-1
     }
 };
 

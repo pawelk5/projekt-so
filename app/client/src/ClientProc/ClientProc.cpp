@@ -222,8 +222,8 @@ void ClientProc::pGenerateClientData() {
     m_data.isVip = RandomChance(VIP_PROB);
     m_data.ticketType = m_data.isVip ? TicketType::VIP : (TicketType)RandomInt(0, (int)TicketType::H24);
 
-    m_data.personData.age = RandomInt(16, 90);
-    m_data.personData.height = RandomInt(150, 200);
+    m_data.personData.age = RandomInt(14, 90);
+    m_data.personData.height = RandomInt(130, 200);
 
     if (m_data.personData.age >= 18)
         m_data.hasChild = RandomChance(CHILD_PROB);
@@ -235,6 +235,6 @@ void ClientProc::pGenerateClientData() {
         return;
     }
 
-    m_data.childData.age = RandomInt(1, 17);
+    m_data.childData.age = RandomInt(1, 13);
     m_data.childData.height = RandomInt(50, 170);
 }
