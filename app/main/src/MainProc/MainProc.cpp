@@ -60,7 +60,7 @@ MainProc& MainProc::Get() {
 void MainProc::Run() {
     while (m_sharedMemory->GetData()->isOpen) {
         CreateProcess("park-client");
-        usleep(RandomInt(CLIENT_SPAWN_TIME_MIN, CLIENT_SPAWN_TIME_MAX));
+        //usleep(RandomInt(CLIENT_SPAWN_TIME_MIN, CLIENT_SPAWN_TIME_MAX));
         if (paused)
             m_pauseSemaphore->Wait();
         paused = false;

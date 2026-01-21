@@ -1,6 +1,7 @@
 #pragma once
 #include "Utils.hpp"
 #include <cerrno>
+#include <csignal>
 #include <cstdint>
 #include <cstdio>
 #include <functional>
@@ -61,6 +62,8 @@ public:
                 return false;
 
             perror("mq_open error");
+            // STOP ON ERROR
+            // kill(getpid(), SIGSTOP);
             throw std::runtime_error("Couldn't open message queue " + m_msqName + "!");
             return false;
         }
