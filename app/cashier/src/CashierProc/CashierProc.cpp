@@ -284,6 +284,10 @@ void CashierProc::HandleSigUsr1() {
 }
 
 void CashierProc::HandleSigTerm() {
+    if (m_sharedMemory->GetData()->isOpen)
+        return;
+
+    pLogMessage("Kasa otrzymuje sygnal zatrzymania pracy (SIGTERM)!");
     m_clients.clear();
     m_terminated = true;
     m_clientCounter = 0;
