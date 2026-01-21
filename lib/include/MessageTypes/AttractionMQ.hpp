@@ -3,9 +3,13 @@
 #include <memory>
 #include "IPC/MessageQueue.hpp"
 #include "SharedMessageTypes.hpp"
+#include "SimulationData.hpp"
 
 struct EnterAttraction {
     bool hasChild;
+
+    PersonData personData;
+    PersonData childData;
 };
 
 enum class AttractionMessageType : int {
