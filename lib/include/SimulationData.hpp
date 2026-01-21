@@ -14,6 +14,11 @@ struct __AttractionConfig {
     bool canLeave;
 };
 
+struct PersonData {
+    uint8_t age;
+    uint8_t height;
+};
+
 constexpr std::array<__AttractionConfig, 17> AttractionConfig = {
     __AttractionConfig { // A1
         .duration=30, .maxClientsPerHandler=20,

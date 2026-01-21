@@ -6,3 +6,9 @@ build/
 .vscode
 .fleet
 .idea
+
+
+bin/
+run.sh
+docs/*
+bledy.md

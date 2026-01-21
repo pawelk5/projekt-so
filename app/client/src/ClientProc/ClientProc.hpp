@@ -49,16 +49,21 @@ protected:
 
     void pRemoveAllMQs();
     
+    void pGenerateClientData();
+
 private:
     ClientMQ m_clientQueue;
     bool m_enteredPark;
     bool m_visitedRestaurant;
     bool m_evac;
     
-    struct ClientData {
+    struct __ClientData {
         bool hasChild;
         bool isVip;
         TicketType ticketType;
+
+        PersonData personData;
+        PersonData childData;
     } m_data;
 
 private:

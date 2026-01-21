@@ -18,7 +18,7 @@ int ClientProc::pEnterAttraction(int attractionID) {
     AttractionMQMessage enterMsg;
     enterMsg.mType = AttractionMessageType::ENTER_ATTRACTION;
     enterMsg.senderPID = getpid();
-    enterMsg.content = EnterAttraction{ .hasChild=m_data.hasChild };
+    enterMsg.content = EnterAttraction{ .hasChild=m_data.hasChild, .personData=m_data.personData, .childData=m_data.childData };
 
     if (!pGetAttractionMQ(attractionID, false))
         return -1;
