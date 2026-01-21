@@ -18,6 +18,9 @@ int GetFirstHandlerSemaphoreID(size_t attractionIndex) {
 }
 
 bool MeetsAttractionCriteria(int attractionID, const PersonData& client, const PersonData& child, bool hasChild) {
+    if (attractionID < 0 || attractionID >= AttractionConfig.size())
+        return false;
+
     const auto attractionConfig = AttractionConfig.at(attractionID);
 
     if (attractionConfig.maxHeight != -1 && client.height > attractionConfig.maxHeight)

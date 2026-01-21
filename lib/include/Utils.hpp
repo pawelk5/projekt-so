@@ -37,6 +37,8 @@ int TimeRemaining(time_t t);
 /// \param str string to be converted
 template<int N>
 std::array<char, N> ToArray(const std::string& str) {
+    static_assert(N > 0, "Array length must be greater than 0!");
+
     std::array<char, N> array { 0 };
     std::size_t length = std::min((int)str.size(), N - 1);
 
