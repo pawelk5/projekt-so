@@ -10,6 +10,7 @@
 #include <string>
 
 static volatile bool paused = false;
+static volatile bool evac = false;
 
 void SigUsr1(int sig) {
     paused = true;
@@ -22,6 +23,7 @@ void SigUsr2(int sig) {
 }
 
 void SigInt(int sig) {
+    evac = true;
     RestaurantProc::Get().HandleSigint();
 }
 
@@ -38,7 +40,7 @@ void RestaurantProc::Run() {
         auto timeout = pGetNextTimeout();
 
         m_eventSemaphore->Wait(1, false, false, timeout);
-        if (m_handler) {
+        if (!evac && !paused && m_handler) {
             if (m_handler->Finished())
                 m_handler = nullptr;
         }

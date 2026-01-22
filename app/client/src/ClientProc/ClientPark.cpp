@@ -8,6 +8,8 @@
 #include "Utils.hpp"
 #include <cstdio>
 #include <ctime>
+#include <exception>
+#include <stdexcept>
 #include <string>
 #include <sys/types.h>
 #include <unistd.h>
@@ -47,13 +49,22 @@ bool ClientProc::pEnterPark() {
     ackMsg.content = EmptyMessage{};
     ackMsg.senderPID = getpid();
     ackMsg.mType = ClientMessageType::ACK;
-    return m_clientQueue->SendMessage(ackMsg);
+    return m_clientQueue->SendMessage(ackMsg, true, 0, CLIENT_MQ_TIMEOUT);
 }
 
 void ClientProc::pLeavePark(bool visitedRestaurant) {
     if (!m_enteredPark)
         return;
     
+    if (!m_data.isVip) {
+        try {
+            if (!pCreateReplyMQ(GetClientParkMQ))
+                throw std::runtime_error("Klient nie mogl stworzyc kolejki odpowiedzi");
+        } catch (std::exception e) {
+            pLogMessage("BLAD: Klient nie mogl stworzyc kolejki odpowiedzi!");
+        }
+    }
+
     m_enteredPark = false;
 
     RegisterMQMessage exitMsg;
@@ -73,7 +84,7 @@ void ClientProc::pLeavePark(bool visitedRestaurant) {
     if (m_data.isVip && !m_visitedRestaurant)
         return;
 
-    if (!result || !m_clientQueue) {
+    if (!result) {
         pLogMessage("Wychodzi z parku, nie mogl sie polaczyc z kolejka komunikatow kasy!");
         return;
     }
@@ -93,7 +104,7 @@ void ClientProc::pLeavePark(bool visitedRestaurant) {
     ackMsg.content = EmptyMessage{};
     ackMsg.senderPID = getpid();
     ackMsg.mType = ClientMessageType::ACK;
-    m_clientQueue->SendMessage(ackMsg, true);
+    m_clientQueue->SendMessage(ackMsg, true, 0, CLIENT_MQ_TIMEOUT);
 
     pLogMessage("Wychodzi z parku, placi: " + std::to_string(reply.price));
 }
