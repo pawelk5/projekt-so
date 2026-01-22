@@ -291,6 +291,7 @@ void CashierProc::HandleSigTerm() {
     m_clients.clear();
     m_terminated = true;
     m_clientCounter = 0;
+    m_eventSemaphore->Signal();
 }
 
 void CashierProc::pSignalAllClients() {

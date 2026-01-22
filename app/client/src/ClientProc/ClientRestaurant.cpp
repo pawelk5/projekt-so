@@ -85,6 +85,13 @@ bool ClientProc::pEnterRestaurant() {
 }
 
 void ClientProc::pLeaveRestaurant() {
+    try {
+        if (!pCreateReplyMQ(GetClientParkMQ))
+            throw std::runtime_error("Klient nie mogl stworzyc kolejki odpowiedzi");
+    } catch (std::exception e) {
+        pLogMessage("BLAD: Klient nie mogl stworzyc kolejki odpowiedzi!");
+    }
+
     RestaurantMQMessage exitMsg;
     exitMsg.mType = RestaurantMessageType::EXIT_RESTAURANT;
     exitMsg.senderPID = getpid();
@@ -102,13 +109,11 @@ void ClientProc::pLeaveRestaurant() {
         pLogMessage("Wychodzi z restauracji, nie mogl sie polaczyc z kolejka komunikatow restauracji!");
 
     // dont wait for reply
-    if (m_enteredPark)
+    if (m_enteredPark || !m_clientQueue);
         return;
 
-    if (!pCreateReplyMQ(GetClientRestaurantMQ)) {
-        pLogMessage("Wychodzi z restauracji bez odebrania rachunku (nie mogl stworzyc kolejki odpowiedzi)!");
-        return;
-    }
+    
+
     auto msg = m_clientQueue->ReceiveMessage(true);
     if (!msg) {
         pLogMessage("Wychodzi z restauracji, nie otrzymac rachunku!");
@@ -124,7 +129,7 @@ void ClientProc::pLeaveRestaurant() {
     ackMsg.content = EmptyMessage{};
     ackMsg.senderPID = getpid();
     ackMsg.mType = ClientMessageType::ACK;
-    m_clientQueue->SendMessage(ackMsg, true);
+    m_clientQueue->SendMessage(ackMsg, true, 0, CLIENT_MQ_TIMEOUT);
 
     pLogMessage("Wychodzi z restauracji, placi: " + std::to_string(reply.price));
     return;

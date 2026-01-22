@@ -9,6 +9,7 @@
 #include "IPC/Signal.hpp"
 #include "Utils.hpp"
 #include <algorithm>
+#include <cerrno>
 #include <cstdio>
 #include <ctime>
 #include <exception>
@@ -37,7 +38,8 @@ void ClientProc::pInitImpl() {
     if (!CreateSignalHandler(SIGUSR1, SigUsr1Handler))
         throw std::runtime_error("couldn't create sigusr1 handler!");
     
-    m_enteredPark = m_evac = false;
+    m_enteredPark = false;
+    m_evac = false;
     m_visitedRestaurant = false;
 
     pGenerateClientData();
@@ -91,9 +93,6 @@ void ClientProc::Run() {
         pRemoveAllMQs();
     }
     
-    if (!m_data.isVip)
-        pCreateReplyMQ(GetClientParkMQ);
-
     pLeavePark(m_visitedRestaurant);
     pRemoveAllMQs();
 
@@ -103,10 +102,7 @@ void ClientProc::Run() {
 }
 
 void ClientProc::pCloseImpl() {
-    if (m_enteredPark){
-        pCreateReplyMQ(GetClientParkMQ);
-        pLeavePark(m_visitedRestaurant);
-    }
+    pLeavePark(m_visitedRestaurant);
 
     pRemoveAllMQs();
     pLogMessage("Klient konczy prace!");
@@ -114,8 +110,12 @@ void ClientProc::pCloseImpl() {
 
 bool ClientProc::pCreateReplyMQ(std::function<ClientMQ(pid_t, bool, const std::function<bool()>&)> func) {
     m_clientQueue = func(getpid(), true, [this] {
-        if (errno == ENOSPC) {
+        if (errno == ENOSPC || errno == ENFILE || errno == ENOMEM) {
             pLogMessage("BLAD: Za duzo kolejek komunikatow w systemie!");
+            return true;
+        }
+        if (errno == EMFILE) {
+            pLogMessage("BLAD: Za duzo kolejek komunikatow w procesie!");
             return true;
         }
         return false;
