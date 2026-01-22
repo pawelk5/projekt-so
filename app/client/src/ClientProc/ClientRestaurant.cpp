@@ -17,9 +17,6 @@
 bool ClientProc::pVisitRestaurant() {
     const auto ct_attractionConfig = AttractionConfig.at(RESTAURANT_INDEX);
 
-    if (!pCreateReplyMQ(GetClientRestaurantMQ))
-        return false;
-
     if (!pEnterRestaurant())
         return false;
 
@@ -49,12 +46,18 @@ bool ClientProc::pVisitRestaurant() {
 }
 
 bool ClientProc::pEnterRestaurant() {
+    if (!m_sharedMemory->GetData()->isOpen)
+        return false;
+
     RestaurantMQMessage enterMsg;
     enterMsg.mType = RestaurantMessageType::ENTER_RESTAURANT;
     enterMsg.senderPID = getpid();
     enterMsg.content = EnterRestaurant{ .hasChild=m_data.hasChild, .fromPark=m_enteredPark };
 
     if (!pGetRestaurantMQ(false))
+        return false;
+
+    if (!pCreateReplyMQ(GetClientRestaurantMQ))
         return false;
 
     if (!pSendRestaurantMQMessage(enterMsg, true))
@@ -78,7 +81,7 @@ bool ClientProc::pEnterRestaurant() {
     ackMsg.content = EmptyMessage{};
     ackMsg.senderPID = getpid();
     ackMsg.mType = ClientMessageType::ACK;
-    if (!m_clientQueue->SendMessage(ackMsg))
+    if (!m_clientQueue->SendMessage(ackMsg, true, 0, CLIENT_MQ_TIMEOUT))
         return false;
 
     return true;
@@ -86,7 +89,7 @@ bool ClientProc::pEnterRestaurant() {
 
 void ClientProc::pLeaveRestaurant() {
     try {
-        if (!pCreateReplyMQ(GetClientParkMQ))
+        if (!pCreateReplyMQ(GetClientRestaurantMQ))
             throw std::runtime_error("Klient nie mogl stworzyc kolejki odpowiedzi");
     } catch (std::exception e) {
         pLogMessage("BLAD: Klient nie mogl stworzyc kolejki odpowiedzi!");
@@ -109,14 +112,12 @@ void ClientProc::pLeaveRestaurant() {
         pLogMessage("Wychodzi z restauracji, nie mogl sie polaczyc z kolejka komunikatow restauracji!");
 
     // dont wait for reply
-    if (m_enteredPark || !m_clientQueue);
-        return;
+    if (m_enteredPark || !m_clientQueue)
+        return;    
 
-    
-
-    auto msg = m_clientQueue->ReceiveMessage(true);
+    auto msg = m_clientQueue->ReceiveMessage(true, CLIENT_MQ_TIMEOUT);
     if (!msg) {
-        pLogMessage("Wychodzi z restauracji, nie otrzymac rachunku!");
+        pLogMessage("Wychodzi z restauracji, nie mogl otrzymac rachunku!");
         return;
     }
 

@@ -13,7 +13,6 @@
 #include <string>
 #include <sys/types.h>
 #include <unistd.h>
-#include <vector>
 
 bool ClientProc::pEnterPark() {
     if (m_enteredPark)

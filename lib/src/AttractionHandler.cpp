@@ -27,7 +27,7 @@ time_t AttractionHandler::GetAttractionFinishTime() {
 }
 
 bool AttractionHandler::Finished() {
-    return time(NULL) >= m_finishTime || m_clientList.size() == 0;
+    return time(NULL) >= m_finishTime || IsEmpty();
 }
 
 bool AttractionHandler::AddClient(pid_t pid, bool hasChild, bool fromPark) {
