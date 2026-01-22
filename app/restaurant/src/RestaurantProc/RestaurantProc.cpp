@@ -6,7 +6,6 @@
 #include "IPC/Signal.hpp"
 #include <cstdint>
 #include <exception>
-#include <optional>
 #include <string>
 
 static volatile bool paused = false;
@@ -46,7 +45,7 @@ void RestaurantProc::Run() {
         }
 
         pHandleRestaurantMQ();
-        if (!m_handler && !paused)
+        if (!m_handler && !paused && !evac)
             pCreateAttractionHandler();
 
     }
@@ -108,7 +107,7 @@ void RestaurantProc::pHandleRestaurantMQ() {
             std::cerr << "Zly typ wiadomosci!" << std::endl;
         }
     } catch (std::exception e) {
-        std::cerr << "BLAD komunikacji z klientem (wyjscie z restauracji)!\n" << e.what() << std::endl;
+        std::cerr << "BLAD komunikacji z klientem (restauracja)!\n" << e.what() << std::endl;
     }
 }
 
@@ -210,7 +209,7 @@ bool RestaurantProc::pRegisterClient(const RestaurantMQMessage& message, std::sh
         }
     } catch (const std::exception& e) {
         // client left the queue before response
-        pLogMessage("Przy obsludze klienta " + std::to_string(replyPID) + " nastapil blad w komunikacji!");
+        pLogMessage("Przy obsludze klienta " + std::to_string(replyPID) + " nastapil blad w komunikacji (restauracja)!");
         pLogMessage((std::string)"BLAD: " + e.what());
     }
 
@@ -222,7 +221,7 @@ bool RestaurantProc::pSendReply(pid_t pid, const ClientMQMessage& msg) {
     return m_replyMQ->SendMessage(msg,
         [this, pid] {
             if (errno == EBADF) {
-                pLogMessage("Klient " + std::to_string(pid) + " opuscil kolejke przed odebraniem wiadomosci!");
+                pLogMessage("Klient " + std::to_string(pid) + " opuscil kolejke przed odebraniem wiadomosci (restauracja)!");
                 return true;
             }
             return false;
@@ -270,7 +269,7 @@ void RestaurantProc::pSendBill(pid_t pid) {
             return;
 
         if (!pSendReply(pid, replyMsg))
-            throw std::runtime_error("Nie mozna bylo wyslac odpowiedzi do klienta!");
+            throw std::runtime_error("Nie mozna bylo wyslac odpowiedzi do klienta (restauracja)!");
 
         auto msg = m_replyMQ->ReceiveMessage(true, DEFAULT_MQ_TIMEOUT);
         // no ack message

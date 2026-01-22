@@ -25,13 +25,28 @@
 #define RESTAURANT_LOG_PATH "restaurant.log"
 #define CLIENT_LOG_PATH "client.log"
 
-constexpr int PARK_SIZE = 250;
+//#define RUN_TEST2
+#ifdef RUN_TEST2
+
+constexpr int PARK_SIZE = 1000;
+constexpr float VIP_PROB = 0.01;
+constexpr float CHILD_PROB = 0.6;
+constexpr int CLIENT_SPAWN_TIME_MIN = 100;
+constexpr int CLIENT_SPAWN_TIME_MAX = 250;
+constexpr int CLIENT_MQ_TIMEOUT = 10;
+constexpr int DEFAULT_MQ_TIMEOUT = 2;
+
+#else
+
+constexpr int PARK_SIZE = 320;
 constexpr float VIP_PROB = 0.01;
 constexpr float CHILD_PROB = 0.6;
 constexpr int CLIENT_SPAWN_TIME_MIN = 2500;
 constexpr int CLIENT_SPAWN_TIME_MAX = 25000;
 constexpr int CLIENT_MQ_TIMEOUT = 10;
 constexpr int DEFAULT_MQ_TIMEOUT = 2;
+
+#endif
 
 constexpr std::array<const char*, 5> logFileNames {
     MAIN_LOG_PATH,
