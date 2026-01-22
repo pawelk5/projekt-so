@@ -1,0 +1,5 @@
+# [Temat projektu](temat.md)
+# [Komponenty](komponenty.md)
+# [Schemat komunikacji](schemat-komunikacji.md)
+# [Testy](testy.md)
+# [Błędy](bledy.md)
